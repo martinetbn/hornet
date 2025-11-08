@@ -13,7 +13,11 @@
     "build:inject-css": "sed -i 's|</title>|</title>\\n  <link rel=\"stylesheet\" href=\"./styles.css\">|' dist/renderer/index.html",
     "build:renderer": "bun run build:css && bun run build:html && bun run build:inject-css",
     "build": "bun run build:main && bun run build:preload && bun run build:renderer",
-    "package": "bun run build && electron-builder"
+    "package": "bun run build && electron-builder",
+    "package:linux": "bun run build && electron-builder --linux",
+    "package:mac": "bun run build && electron-builder --mac",
+    "package:win": "bun run build && electron-builder --win",
+    "package:all": "bun run build && electron-builder -mwl"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
@@ -41,6 +45,18 @@
     ],
     "directories": {
       "output": "release"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Development"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
     }
   }
 }
