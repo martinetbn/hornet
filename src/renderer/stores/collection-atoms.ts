@@ -1,11 +1,12 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { electronStorage } from '@/lib/adapters/electron-storage';
-import { CollectionFolder, Tab } from '@/types/collection';
+import { CollectionFolder, Tab, CollectionItem } from '@/types/collection';
+import { HttpRequest } from '@/types/request';
+import { HttpMethod } from '@/types/common';
 
-// Simplified RequestConfig for backward compatibility with current UI
-// TODO: Migrate to full HttpRequest type from @/types
-export interface RequestConfig {
+// Legacy RequestConfig for backward compatibility during migration
+interface LegacyRequestConfig {
   id: string;
   name: string;
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -15,16 +16,101 @@ export interface RequestConfig {
   params?: Record<string, string>;
 }
 
+// Migration function to convert legacy RequestConfig to HttpRequest
+export const migrateRequestConfig = (legacy: LegacyRequestConfig): HttpRequest => {
+  const now = Date.now();
+  return {
+    id: legacy.id,
+    name: legacy.name,
+    protocol: 'http' as const,
+    method: legacy.method as HttpMethod,
+    url: legacy.url,
+    headers: legacy.headers
+      ? Object.entries(legacy.headers).map(([key, value]) => ({
+          key,
+          value,
+          enabled: true,
+        }))
+      : undefined,
+    params: legacy.params
+      ? Object.entries(legacy.params).map(([key, value]) => ({
+          key,
+          value,
+          enabled: true,
+        }))
+      : undefined,
+    body: legacy.body
+      ? {
+          type: 'json' as const,
+          content: legacy.body,
+        }
+      : undefined,
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
+// Helper to check if an item is a legacy RequestConfig
+const isLegacyRequest = (item: any): item is LegacyRequestConfig => {
+  return (
+    item &&
+    typeof item === 'object' &&
+    'id' in item &&
+    'name' in item &&
+    'method' in item &&
+    'url' in item &&
+    !('protocol' in item)
+  );
+};
+
+// Helper to migrate collections
+const migrateCollections = (collections: any[]): CollectionFolder[] => {
+  return collections.map((item) => {
+    if (item.type === 'folder') {
+      return {
+        ...item,
+        children: migrateCollectionItems(item.children || []),
+      };
+    }
+    return isLegacyRequest(item) ? migrateRequestConfig(item) : item;
+  }) as CollectionFolder[];
+};
+
+// Helper to migrate collection items
+const migrateCollectionItems = (items: any[]): CollectionItem[] => {
+  return items.map((item) => {
+    if (item.type === 'folder') {
+      return {
+        ...item,
+        children: migrateCollectionItems(item.children || []),
+      };
+    }
+    return isLegacyRequest(item) ? migrateRequestConfig(item) : item;
+  });
+};
+
 // Re-export types for convenience
-export type { CollectionFolder, Tab };
+export type { CollectionFolder, Tab, CollectionItem, HttpRequest };
 
-export type CollectionItem = CollectionFolder | RequestConfig;
+// Create a migrating storage wrapper that applies migration on read
+const migratingCollectionStorage = (): ReturnType<typeof electronStorage<CollectionFolder[]>> => {
+  const baseStorage = electronStorage<CollectionFolder[]>();
 
-// Persistent atom for collections using Electron storage
+  return {
+    ...baseStorage,
+    getItem: async (key: string, initialValue: CollectionFolder[]): Promise<CollectionFolder[]> => {
+      const value = await baseStorage.getItem(key, initialValue);
+      // Apply migration to convert legacy requests to HttpRequest
+      return migrateCollections(value);
+    },
+  };
+};
+
+// Persistent atom for collections using Electron storage with migration
 export const collectionsAtom = atomWithStorage<CollectionFolder[]>(
   'collections',
   [],
-  electronStorage<CollectionFolder[]>(),
+  migratingCollectionStorage(),
   { getOnInit: true }
 );
 

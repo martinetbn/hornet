@@ -1,6 +1,7 @@
 // Main application component - refactored following documented architecture
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAtom } from 'jotai';
 import { createRoot } from 'react-dom/client';
 import { DragEndEvent } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
@@ -32,10 +33,11 @@ import { AppSidebar, AppHeader } from '@/components/layout';
 import { RequestBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import { useCollection, useTabs } from '@/features/collections/hooks';
-import { RequestConfig, CollectionItem, CollectionFolder, generateId } from '@/stores/collection-atoms';
+import { HttpRequest, CollectionItem, CollectionFolder, generateId } from '@/stores/collection-atoms';
+import { themeAtom } from '@/stores/theme-atoms';
 
 function App() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useAtom(themeAtom);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -57,22 +59,33 @@ function App() {
 
   const { tabs, activeTab, activeTabId, setActiveTabId, openTab, closeTab, updateTab, createNewTab } = useTabs();
 
+  // Sync dark class with theme atom
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('dark');
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
   const handleFileSelect = (request: unknown, path: string[]) => {
-    openTab(request as RequestConfig, path);
+    openTab(request as HttpRequest, path);
   };
 
   const handleNewRequest = () => {
-    const newRequest: RequestConfig = {
+    const now = Date.now();
+    const newRequest: HttpRequest = {
       id: generateId(),
       name: 'New Request',
+      protocol: 'http',
       method: 'GET',
       url: 'https://api.example.com',
+      createdAt: now,
+      updatedAt: now,
     };
     createNewTab(newRequest);
   };

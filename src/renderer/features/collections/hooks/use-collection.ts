@@ -1,7 +1,7 @@
 // Collection management hook
 
 import { useAtom } from 'jotai';
-import { collectionsAtom, CollectionItem, CollectionFolder, RequestConfig, generateId } from '@/stores/collection-atoms';
+import { collectionsAtom, CollectionItem, CollectionFolder, HttpRequest, generateId } from '@/stores/collection-atoms';
 import { useCallback } from 'react';
 
 export function useCollection() {
@@ -105,11 +105,11 @@ export function useCollection() {
 
   // Update request in collections
   const updateRequest = useCallback(
-    (requestId: string, updatedRequest: RequestConfig): void => {
+    (requestId: string, updatedRequest: HttpRequest): void => {
       const updateRecursive = (items: CollectionItem[]): CollectionItem[] => {
         return items.map((item) => {
           if (item.id === requestId) {
-            return updatedRequest;
+            return { ...updatedRequest, updatedAt: Date.now() };
           }
           if ('type' in item && item.type === 'folder') {
             return {
@@ -189,18 +189,23 @@ export function useCollection() {
 
   // Save request (add or update)
   const saveRequest = useCallback(
-    (request: RequestConfig, folderId?: string): void => {
+    (request: HttpRequest, folderId?: string): void => {
       const existingRequest = findItem(request.id);
 
       if (existingRequest) {
         // Update existing request
         updateRequest(request.id, request);
       } else {
-        // Add new request
+        // Add new request with createdAt/updatedAt timestamps
+        const newRequest = {
+          ...request,
+          createdAt: request.createdAt || Date.now(),
+          updatedAt: Date.now(),
+        };
         if (!folderId) {
-          setCollections([...collections, request]);
+          setCollections([...collections, newRequest]);
         } else {
-          addToFolder(folderId, request);
+          addToFolder(folderId, newRequest);
         }
       }
     },
