@@ -133,9 +133,9 @@ function App() {
 
   return (
     <SidebarProvider>
-      <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+      <ResizablePanelGroup direction="horizontal" className="h-screen">
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-          <Sidebar collapsible="none" side="left" className="border-r w-full h-full">
+          <Sidebar collapsible="none" side="left" className="border-r w-full h-screen">
             <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -208,9 +208,9 @@ function App() {
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={80}>
-          <SidebarInset>
+          <SidebarInset className="h-screen overflow-auto">
         {/* Header */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
           <div className="flex items-center gap-2 flex-1">
             <span className="text-sm font-semibold">New Request</span>
           </div>
