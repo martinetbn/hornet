@@ -39,6 +39,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
@@ -85,12 +93,22 @@ const collectionsData = [
 
 type TreeItem = string | TreeItem[];
 
-function Tree({ item }: { item: TreeItem }) {
+interface TreeProps {
+  item: TreeItem;
+  path?: string[];
+  onSelect?: (path: string[]) => void;
+}
+
+function Tree({ item, path = [], onSelect }: TreeProps) {
   const [name, ...items] = Array.isArray(item) ? item : [item];
+  const currentPath = [...path, name as string];
 
   if (!items.length) {
     return (
-      <SidebarMenuButton className="data-[active=true]:bg-transparent">
+      <SidebarMenuButton
+        className="data-[active=true]:bg-transparent"
+        onClick={() => onSelect?.(currentPath)}
+      >
         <File className="shrink-0" />
         <span className="truncate">{name}</span>
       </SidebarMenuButton>
@@ -113,7 +131,7 @@ function Tree({ item }: { item: TreeItem }) {
         <CollapsibleContent>
           <SidebarMenuSub className="mx-0 px-0 pl-4">
             {items.map((subItem, index) => (
-              <Tree key={index} item={subItem} />
+              <Tree key={index} item={subItem} path={currentPath} onSelect={onSelect} />
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -126,6 +144,7 @@ function App() {
   const [method, setMethod] = useState('GET');
   const [url, setUrl] = useState('https://api.example.com/users');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [breadcrumbPath, setBreadcrumbPath] = useState<string[]>(['New Request']);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -186,7 +205,7 @@ function App() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {collectionsData.map((item, index) => (
-                  <Tree key={index} item={item} />
+                  <Tree key={index} item={item} onSelect={setBreadcrumbPath} />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -214,7 +233,27 @@ function App() {
         {/* Header */}
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
           <div className="flex items-center gap-2 flex-1">
-            <span className="text-sm font-semibold">New Request</span>
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbPath.map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    {index > 0 && <BreadcrumbSeparator />}
+                    <BreadcrumbItem>
+                      {index === breadcrumbPath.length - 1 ? (
+                        <BreadcrumbPage>{item}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href="#" onClick={(e) => {
+                          e.preventDefault();
+                          setBreadcrumbPath(breadcrumbPath.slice(0, index + 1));
+                        }}>
+                          {item}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </div>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
