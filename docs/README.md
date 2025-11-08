@@ -97,6 +97,26 @@ Practical guide for day-to-day development work.
 
 ---
 
+### 🎨 [shadcn/ui Integration](./SHADCN_UI.md)
+Complete guide to using shadcn/ui components for building the interface.
+
+**Topics covered:**
+- Why shadcn/ui for Hornet
+- Configuration and setup
+- Available components (Button, Input, Card, etc.)
+- Adding new components
+- Customization and theming
+- Best practices and examples
+- Integration with Jotai
+
+**Read this if you:**
+- Are building UI components
+- Need to add new shadcn components
+- Want to customize the theme
+- Need UI component examples
+
+---
+
 ## Quick Start
 
 New to Hornet? Follow this path:

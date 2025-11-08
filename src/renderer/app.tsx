@@ -1,46 +1,84 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 function App() {
   const [count, setCount] = useState(0);
+  const [url, setUrl] = useState('https://api.example.com');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Welcome to Hornet
-        </h1>
-        <p className="text-gray-600 mb-6">
-          An Electron app with React and Tailwind CSS
-        </p>
+    <div className="min-h-screen flex items-center justify-center p-8">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>Welcome to Hornet</CardTitle>
+          <CardDescription>
+            Multi-protocol API client with HTTP, WebSocket, Socket.IO, and gRPC support
+          </CardDescription>
+        </CardHeader>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-            <span className="text-lg font-semibold text-gray-700">Count:</span>
-            <span className="text-3xl font-bold text-indigo-600">{count}</span>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">API Endpoint</label>
+            <div className="flex gap-2">
+              <Input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Enter API URL"
+                className="flex-1"
+              />
+              <Button>Send</Button>
+            </div>
           </div>
 
-          <button
-            onClick={() => setCount(count + 1)}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-          >
-            Increment
-          </button>
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium">Counter Demo</span>
+              <span className="text-3xl font-bold">{count}</span>
+            </div>
 
-          <button
-            onClick={() => setCount(0)}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-          >
-            Reset
-          </button>
-        </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setCount(count + 1)} className="flex-1">
+                Increment
+              </Button>
+              <Button
+                onClick={() => setCount(count - 1)}
+                variant="secondary"
+                className="flex-1"
+              >
+                Decrement
+              </Button>
+              <Button onClick={() => setCount(0)} variant="outline">
+                Reset
+              </Button>
+            </div>
+          </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
-            Built with Electron, React, and Tailwind CSS 4
-          </p>
-        </div>
-      </div>
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Button Variants</h3>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="default">Default</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="destructive">Destructive</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="link">Link</Button>
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="text-sm text-muted-foreground">
+          Built with Electron, React, Tailwind CSS 4, and shadcn/ui
+        </CardFooter>
+      </Card>
     </div>
   );
 }
