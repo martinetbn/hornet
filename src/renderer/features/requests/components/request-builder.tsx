@@ -24,16 +24,59 @@ import {
 } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus } from 'lucide-react';
+import { Plus, Send, Loader2 } from 'lucide-react';
 import { RequestConfig } from '@/stores/collection-atoms';
+import { useRequest } from '../hooks';
+import { HttpRequest } from '@/types';
 
 interface RequestBuilderProps {
   request: RequestConfig;
   onRequestChange?: (request: RequestConfig) => void;
-  onSend?: () => void;
 }
 
-export function RequestBuilder({ request, onRequestChange, onSend }: RequestBuilderProps) {
+export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps) {
+  const { sendRequest, loading } = useRequest();
+
+  // Convert RequestConfig to HttpRequest for the adapter
+  const convertToHttpRequest = (config: RequestConfig): HttpRequest => {
+    return {
+      id: config.id,
+      name: config.name,
+      protocol: 'http' as const,
+      method: config.method,
+      url: config.url,
+      headers: config.headers
+        ? Object.entries(config.headers).map(([key, value]) => ({ key, value, enabled: true }))
+        : [],
+      params: config.params
+        ? Object.entries(config.params).map(([key, value]) => ({ key, value, enabled: true }))
+        : [],
+      body: config.body ? { type: 'json', content: config.body } : undefined,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+  };
+
+  const handleSend = async () => {
+    try {
+      const httpRequest = convertToHttpRequest(request);
+      await sendRequest(httpRequest);
+    } catch (error) {
+      console.error('Failed to send request:', error);
+    }
+  };
+
+  const handleMethodChange = (method: RequestConfig['method']) => {
+    onRequestChange?.({ ...request, method });
+  };
+
+  const handleUrlChange = (url: string) => {
+    onRequestChange?.({ ...request, url });
+  };
+
+  const handleBodyChange = (body: string) => {
+    onRequestChange?.({ ...request, body });
+  };
   return (
     <Card>
       <CardHeader>
@@ -45,7 +88,7 @@ export function RequestBuilder({ request, onRequestChange, onSend }: RequestBuil
       <CardContent className="space-y-4">
         {/* Request URL Section */}
         <div className="flex gap-2">
-          <Select value={request.method} disabled>
+          <Select value={request.method} onValueChange={handleMethodChange}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -70,12 +113,24 @@ export function RequestBuilder({ request, onRequestChange, onSend }: RequestBuil
 
           <Input
             value={request.url}
-            placeholder="Enter request URL"
+            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder="Enter request URL (e.g., https://api.example.com/users)"
             className="flex-1"
-            readOnly
           />
 
-          <Button onClick={onSend}>Send</Button>
+          <Button onClick={handleSend} disabled={loading || !request.url}>
+            {loading ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                Sending
+              </>
+            ) : (
+              <>
+                <Send className="size-4 mr-2" />
+                Send
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Request Configuration Tabs */}
@@ -142,9 +197,9 @@ export function RequestBuilder({ request, onRequestChange, onSend }: RequestBuil
               </div>
               <Textarea
                 value={request.body || ''}
+                onChange={(e) => handleBodyChange(e.target.value)}
                 placeholder='{\n  "name": "John Doe",\n  "email": "john@example.com"\n}'
                 className="font-mono text-sm min-h-[200px]"
-                readOnly
               />
             </div>
           </TabsContent>

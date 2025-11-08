@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
@@ -65,6 +65,23 @@ ipcMain.handle('storage:delete', async (_, key: string) => {
 });
 
 function createWindow() {
+  // Configure CSP to allow external HTTP requests (needed for API client)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' data: blob: https:; " +
+          "connect-src *; " + // Allow connections to any URL for API testing
+          "font-src 'self' data:; "
+        ]
+      }
+    });
+  });
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,

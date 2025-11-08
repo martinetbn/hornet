@@ -240,7 +240,13 @@ function App() {
 
               {activeTab && (
                 <>
-                  <RequestBuilder request={activeTab.request} />
+                  <RequestBuilder
+                    request={activeTab.request}
+                    onRequestChange={(updatedRequest) => {
+                      // Update the tab with the modified request
+                      updateTab(activeTab.id, { request: updatedRequest });
+                    }}
+                  />
                   <ResponseViewer />
                 </>
               )}
