@@ -114,8 +114,24 @@ import {
 } from '@/components/ui/resizable';
 
 // Root droppable component to allow dropping at root level
+function RootTopDroppable({ overId }: { overId: string | null }) {
+  const { setNodeRef } = useDroppable({
+    id: 'root-top',
+  });
+
+  const isOverRootTop = overId === 'root-top';
+
+  return (
+    <div ref={setNodeRef} className="relative h-6 -mb-2">
+      {isOverRootTop && (
+        <div className="absolute top-2 left-0 right-0 h-0.5 bg-primary rounded-full z-10" />
+      )}
+    </div>
+  );
+}
+
 function RootDroppable({ children, overId }: { children: React.ReactNode; overId: string | null }) {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef } = useDroppable({
     id: 'root-droppable',
   });
 
@@ -422,21 +438,34 @@ function App() {
   };
 
   const saveRequest = (request: RequestConfig, folderId?: string) => {
-    if (!folderId) {
-      // Save to root level directly
-      setCollections([...collections, request]);
+    // Check if request already exists in collections
+    const existingRequest = findItemInCollections(collections, request.id);
+
+    let updatedCollections: CollectionItem[];
+
+    if (existingRequest) {
+      // Request already exists - update it in place
+      updatedCollections = updateInCollections(collections, request.id, request);
     } else {
-      // Save to specific folder
-      const updatedCollections = addToFolder(collections, folderId, request);
-      setCollections(updatedCollections);
+      // Request doesn't exist - add it as new
+      if (!folderId) {
+        // Save to root level directly
+        updatedCollections = [...collections, request];
+      } else {
+        // Save to specific folder
+        updatedCollections = addToFolder(collections, folderId, request);
+      }
     }
+
+    setCollections(updatedCollections);
 
     // Update tab with new path
     const updatedTabs = tabs.map((tab) => {
       if (tab.id === request.id) {
         return {
           ...tab,
-          path: findPath(collections, request.id) || [request.name],
+          path: findPath(updatedCollections, request.id) || [request.name],
+          request: request,
         };
       }
       return tab;
@@ -548,6 +577,43 @@ function App() {
     }) as CollectionItem[];
   };
 
+  // Helper function to check if item exists in collections
+  const findItemInCollections = (
+    items: CollectionItem[],
+    itemId: string
+  ): CollectionItem | null => {
+    for (const item of items) {
+      if (item.id === itemId) {
+        return item;
+      }
+      if ('type' in item && item.type === 'folder') {
+        const found = findItemInCollections(item.children, itemId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to update an existing request in collections
+  const updateInCollections = (
+    items: CollectionItem[],
+    itemId: string,
+    updatedRequest: RequestConfig
+  ): CollectionItem[] => {
+    return items.map((item) => {
+      if (item.id === itemId) {
+        return updatedRequest;
+      }
+      if ('type' in item && item.type === 'folder') {
+        return {
+          ...item,
+          children: updateInCollections(item.children, itemId, updatedRequest),
+        };
+      }
+      return item;
+    }) as CollectionItem[];
+  };
+
   // Helper function to find path to an item
   const findPath = (
     items: CollectionItem[],
@@ -616,8 +682,11 @@ function App() {
 
     // Add item to new location
     if (over.id === 'root-droppable') {
-      // Drop at root level
+      // Drop at root level (end of list)
       updatedCollections = [...updatedCollections, draggedItem];
+    } else if (over.id === 'root-top') {
+      // Drop at root level (top of list)
+      updatedCollections = [draggedItem, ...updatedCollections];
     } else if (targetFolder && 'type' in targetFolder && targetFolder.type === 'folder') {
       // Drop into a folder
       updatedCollections = addToFolder(updatedCollections, targetFolder.id, draggedItem);
@@ -693,6 +762,7 @@ function App() {
                 </div>
               ) : (
                 <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver}>
+                  <RootTopDroppable overId={overId} />
                   <RootDroppable overId={overId}>
                     <SidebarMenu>
                       {collections.map((item) => (
@@ -788,7 +858,20 @@ function App() {
                 variant="outline"
                 size="sm"
                 disabled={!activeTab}
-                onClick={() => setSaveDialogOpen(true)}
+                onClick={() => {
+                  if (!activeTab) return;
+
+                  // Check if request already exists in collections
+                  const existingRequest = findItemInCollections(collections, activeTab.request.id);
+
+                  if (existingRequest) {
+                    // Request exists - update it directly without showing dialog
+                    saveRequest(activeTab.request);
+                  } else {
+                    // New request - show dialog to select location
+                    setSaveDialogOpen(true);
+                  }
+                }}
               >
                 <Save className="size-4 mr-2" />
                 Save
