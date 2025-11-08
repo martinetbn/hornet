@@ -1,8 +1,10 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { electronStorage } from '@/lib/adapters/electron-storage';
+import { CollectionFolder, Tab } from '@/types/collection';
 
-// Type definitions for configuration
+// Simplified RequestConfig for backward compatibility with current UI
+// TODO: Migrate to full HttpRequest type from @/types
 export interface RequestConfig {
   id: string;
   name: string;
@@ -13,19 +15,8 @@ export interface RequestConfig {
   params?: Record<string, string>;
 }
 
-export interface CollectionFolder {
-  id: string;
-  name: string;
-  type: 'folder';
-  children: (CollectionFolder | RequestConfig)[];
-}
-
-export interface Tab {
-  id: string;
-  name: string;
-  path: string[];
-  request: RequestConfig;
-}
+// Re-export types for convenience
+export type { CollectionFolder, Tab };
 
 export type CollectionItem = CollectionFolder | RequestConfig;
 
