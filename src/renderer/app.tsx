@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useAtom } from 'jotai';
-import { DevTools } from 'jotai-devtools';
 import {
   collectionsAtom,
   tabsAtom,
@@ -140,11 +139,30 @@ interface TreeProps {
   path?: string[];
   onSelect?: (request: RequestConfig, path: string[]) => void;
   onDelete?: (itemId: string) => void;
+  onRename?: (item: CollectionItem) => void;
   overId?: string | null;
+  renamingId?: string | null;
+  renamingValue?: string;
+  onRenamingValueChange?: (value: string) => void;
+  onConfirmRename?: () => void;
+  onCancelRename?: () => void;
 }
 
-function Tree({ item, path = [], onSelect, onDelete, overId }: TreeProps) {
+function Tree({
+  item,
+  path = [],
+  onSelect,
+  onDelete,
+  onRename,
+  overId,
+  renamingId,
+  renamingValue,
+  onRenamingValueChange,
+  onConfirmRename,
+  onCancelRename,
+}: TreeProps) {
   const currentPath = [...path, item.name];
+  const isRenaming = renamingId === item.id;
 
   // Check if item is a folder
   const isFolder = 'type' in item && item.type === 'folder';
@@ -170,13 +188,37 @@ function Tree({ item, path = [], onSelect, onDelete, overId }: TreeProps) {
             <ContextMenuTrigger asChild>
               <SidebarMenuButton
                 className={`data-[active=true]:bg-transparent ${isDragging ? 'opacity-50' : ''}`}
-                onClick={() => onSelect?.(request, currentPath)}
+                onClick={() => !isRenaming && onSelect?.(request, currentPath)}
+                onDoubleClick={() => onRename?.(request)}
               >
                 <File className="shrink-0" />
-                <span className="truncate">{request.name}</span>
+                {isRenaming ? (
+                  <Input
+                    value={renamingValue}
+                    onChange={(e) => onRenamingValueChange?.(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onConfirmRename?.();
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        onCancelRename?.();
+                      }
+                    }}
+                    onBlur={onConfirmRename}
+                    className="h-6 px-2 py-0 text-sm"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <span className="truncate">{request.name}</span>
+                )}
               </SidebarMenuButton>
             </ContextMenuTrigger>
             <ContextMenuContent>
+              <ContextMenuItem onClick={() => onRename?.(request)}>
+                Rename
+              </ContextMenuItem>
               <ContextMenuItem onClick={() => onDelete?.(request.id)}>
                 Delete
               </ContextMenuItem>
@@ -204,24 +246,51 @@ function Tree({ item, path = [], onSelect, onDelete, overId }: TreeProps) {
           {isOver && (
             <div className="absolute inset-0 border-2 border-primary rounded-md pointer-events-none" />
           )}
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton
-                  className={`${isDragging ? 'opacity-50' : ''} ${isOver ? 'bg-accent/30' : ''}`}
-                >
-                  <ChevronRight className="transition-transform shrink-0 group-data-[state=open]/collapsible:rotate-90" />
-                  <Folder className="shrink-0" />
-                  <span className="truncate">{folder.name}</span>
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem onClick={() => onDelete?.(folder.id)}>
-                Delete Folder
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+          {isRenaming ? (
+            <SidebarMenuButton className="cursor-text">
+              <ChevronRight className="transition-transform shrink-0 group-data-[state=open]/collapsible:rotate-90" />
+              <Folder className="shrink-0" />
+              <Input
+                value={renamingValue}
+                onChange={(e) => onRenamingValueChange?.(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onConfirmRename?.();
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    onCancelRename?.();
+                  }
+                }}
+                onBlur={onConfirmRename}
+                className="h-6 px-2 py-0 text-sm"
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+              />
+            </SidebarMenuButton>
+          ) : (
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                    className={`${isDragging ? 'opacity-50' : ''} ${isOver ? 'bg-accent/30' : ''}`}
+                  >
+                    <ChevronRight className="transition-transform shrink-0 group-data-[state=open]/collapsible:rotate-90" />
+                    <Folder className="shrink-0" />
+                    <span className="truncate">{folder.name}</span>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onRename?.(folder)}>
+                  Rename
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => onDelete?.(folder.id)}>
+                  Delete Folder
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          )}
         </div>
         <CollapsibleContent>
           <SidebarMenuSub className="mx-0 px-0 pl-4">
@@ -232,7 +301,13 @@ function Tree({ item, path = [], onSelect, onDelete, overId }: TreeProps) {
                 path={currentPath}
                 onSelect={onSelect}
                 onDelete={onDelete}
+                onRename={onRename}
                 overId={overId}
+                renamingId={renamingId}
+                renamingValue={renamingValue}
+                onRenamingValueChange={onRenamingValueChange}
+                onConfirmRename={onConfirmRename}
+                onCancelRename={onCancelRename}
               />
             ))}
           </SidebarMenuSub>
@@ -252,6 +327,8 @@ function App() {
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
   const [overId, setOverId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renamingValue, setRenamingValue] = useState('');
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -378,6 +455,38 @@ function App() {
     }
   };
 
+  const startRename = (item: CollectionItem) => {
+    setRenamingId(item.id);
+    setRenamingValue(item.name);
+  };
+
+  const confirmRename = () => {
+    if (renamingId && renamingValue.trim()) {
+      const updatedCollections = renameInCollections(collections, renamingId, renamingValue.trim());
+      setCollections(updatedCollections);
+
+      // Update tab name if this item has an open tab
+      const updatedTabs = tabs.map((tab) => {
+        if (tab.request.id === renamingId) {
+          return {
+            ...tab,
+            name: renamingValue.trim(),
+            request: { ...tab.request, name: renamingValue.trim() },
+          };
+        }
+        return tab;
+      });
+      setTabs(updatedTabs);
+    }
+    setRenamingId(null);
+    setRenamingValue('');
+  };
+
+  const cancelRename = () => {
+    setRenamingId(null);
+    setRenamingValue('');
+  };
+
   // Helper function to add item to a folder
   const addToFolder = (
     items: CollectionItem[],
@@ -417,6 +526,26 @@ function App() {
         }
         return item;
       }) as CollectionItem[];
+  };
+
+  // Helper function to rename item in collections
+  const renameInCollections = (
+    items: CollectionItem[],
+    itemId: string,
+    newName: string
+  ): CollectionItem[] => {
+    return items.map((item) => {
+      if (item.id === itemId) {
+        return { ...item, name: newName };
+      }
+      if ('type' in item && item.type === 'folder') {
+        return {
+          ...item,
+          children: renameInCollections(item.children, itemId, newName),
+        };
+      }
+      return item;
+    }) as CollectionItem[];
   };
 
   // Helper function to find path to an item
@@ -498,9 +627,7 @@ function App() {
   };
 
   return (
-    <>
-      <DevTools />
-      <SidebarProvider>
+    <SidebarProvider>
       <ResizablePanelGroup direction="horizontal" className="h-screen">
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
           <Sidebar collapsible="none" side="left" className="border-r w-full h-screen overflow-x-hidden overflow-y-auto">
@@ -574,7 +701,13 @@ function App() {
                           item={item}
                           onSelect={handleFileSelect}
                           onDelete={deleteItem}
+                          onRename={startRename}
                           overId={overId}
+                          renamingId={renamingId}
+                          renamingValue={renamingValue}
+                          onRenamingValueChange={setRenamingValue}
+                          onConfirmRename={confirmRename}
+                          onCancelRename={cancelRename}
                         />
                       ))}
                     </SidebarMenu>
@@ -970,7 +1103,6 @@ function App() {
         </DialogContent>
       </Dialog>
     </SidebarProvider>
-    </>
   );
 }
 
