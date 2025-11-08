@@ -27,7 +27,7 @@ function createWindow() {
 
   // Open DevTools in development
   if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
   }
 
   mainWindow.on('closed', () => {

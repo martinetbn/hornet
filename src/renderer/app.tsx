@@ -53,6 +53,8 @@ import {
   SidebarGroupContent,
   SidebarRail,
   SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
@@ -88,7 +90,7 @@ function Tree({ item }: { item: TreeItem }) {
 
   if (!items.length) {
     return (
-      <SidebarMenuButton className="data-[active=true]:bg-transparent w-full">
+      <SidebarMenuButton className="data-[active=true]:bg-transparent">
         <File className="shrink-0" />
         <span className="truncate">{name}</span>
       </SidebarMenuButton>
@@ -96,20 +98,20 @@ function Tree({ item }: { item: TreeItem }) {
   }
 
   return (
-    <SidebarMenuItem className="w-full">
+    <SidebarMenuItem>
       <Collapsible
-        className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90 w-full"
+        className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
         defaultOpen={name === 'My APIs'}
       >
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton className="w-full">
+          <SidebarMenuButton>
             <ChevronRight className="transition-transform shrink-0" />
             <Folder className="shrink-0" />
             <span className="truncate">{name}</span>
           </SidebarMenuButton>
         </CollapsibleTrigger>
-        <CollapsibleContent className="w-full">
-          <SidebarMenuSub className="w-full">
+        <CollapsibleContent>
+          <SidebarMenuSub className="mx-0 px-0 pl-4">
             {items.map((subItem, index) => (
               <Tree key={index} item={subItem} />
             ))}
@@ -135,7 +137,7 @@ function App() {
     <SidebarProvider>
       <ResizablePanelGroup direction="horizontal" className="h-screen">
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-          <Sidebar collapsible="none" side="left" className="border-r w-full h-screen">
+          <Sidebar collapsible="none" side="left" className="border-r w-full h-screen overflow-x-hidden overflow-y-auto">
             <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -152,7 +154,7 @@ function App() {
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent className="overflow-x-hidden">
           <SidebarGroup>
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
             <SidebarGroupContent>
