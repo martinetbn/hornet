@@ -82,8 +82,8 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <div className="flex items-center justify-between px-2">
-            <SidebarGroupLabel>Collections</SidebarGroupLabel>
+          <div className="flex h-8 items-center justify-between px-2 text-xs font-medium text-sidebar-foreground/70">
+            <span>Collections</span>
             <Button
               variant="ghost"
               size="icon"

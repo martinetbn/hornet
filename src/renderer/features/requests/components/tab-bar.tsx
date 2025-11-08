@@ -34,7 +34,12 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
           }`}
           onClick={() => onTabSelect(tab.id)}
         >
-          <span className="truncate">{tab.name}</span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            {tab.isDirty && (
+              <div className="size-1.5 rounded-full bg-primary shrink-0" title="Unsaved changes" />
+            )}
+            <span className="truncate">{tab.name}</span>
+          </div>
           <Button
             variant="ghost"
             size="icon"

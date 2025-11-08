@@ -103,9 +103,9 @@ function App() {
     const folderId = selectedFolderId === '__root__' ? undefined : selectedFolderId;
     saveRequest(activeTab.request, folderId);
 
-    // Update tab with new path
+    // Update tab with new path and clear dirty flag
     const newPath = findPath(activeTab.request.id) || [activeTab.request.name];
-    updateTab(activeTab.id, { path: newPath });
+    updateTab(activeTab.id, { path: newPath, isDirty: false });
 
     setSaveDialogOpen(false);
     setSelectedFolderId(undefined);
@@ -118,6 +118,8 @@ function App() {
     if (existingRequest) {
       // Request exists - update it directly
       saveRequest(activeTab.request);
+      // Clear dirty flag after saving
+      updateTab(activeTab.id, { isDirty: false });
     } else {
       // New request - show dialog to select location
       setSaveDialogOpen(true);
@@ -256,8 +258,8 @@ function App() {
                   <RequestBuilder
                     request={activeTab.request}
                     onRequestChange={(updatedRequest) => {
-                      // Update the tab with the modified request
-                      updateTab(activeTab.id, { request: updatedRequest });
+                      // Update the tab with the modified request and mark as dirty
+                      updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
                     }}
                   />
                   <ResponseViewer />

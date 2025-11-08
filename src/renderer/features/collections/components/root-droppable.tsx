@@ -10,9 +10,9 @@ export function RootTopDroppable({ overId }: { overId: string | null }) {
   const isOverRootTop = overId === 'root-top';
 
   return (
-    <div ref={setNodeRef} className="relative h-6 -mb-2">
+    <div ref={setNodeRef} className="relative h-0">
       {isOverRootTop && (
-        <div className="absolute top-2 left-0 right-0 h-0.5 bg-primary rounded-full z-10" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary rounded-full z-10" />
       )}
     </div>
   );
