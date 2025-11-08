@@ -31,12 +31,19 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.14.1",
+    "@grpc/proto-loader": "^0.8.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "axios": "^1.13.2",
+    "jotai": "^2.15.1",
+    "nanoid": "^5.1.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.0.0"
+    "socket.io-client": "^4.8.1",
+    "tailwindcss": "^4.0.0",
+    "uuid": "^13.0.0"
   },
   "build": {
     "appId": "com.hornet.app",
