@@ -1,6 +1,6 @@
 // Main application component - refactored following documented architecture
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { createRoot } from 'react-dom/client';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -72,6 +72,34 @@ function App() {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
+  const handleSave = useCallback(() => {
+    if (!activeTab) return;
+    const existingRequest = findItem(activeTab.request.id);
+
+    if (existingRequest) {
+      // Request exists - update it directly
+      saveRequest(activeTab.request);
+      // Clear dirty flag after saving
+      updateTab(activeTab.id, { isDirty: false });
+    } else {
+      // New request - show dialog to select location
+      setSaveDialogOpen(true);
+    }
+  }, [activeTab, findItem, saveRequest, updateTab, setSaveDialogOpen]);
+
+  // Add keyboard shortcut for save (Ctrl/Cmd + S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave]);
+
   const handleFileSelect = (request: unknown, path: string[]) => {
     openTab(request as HttpRequest, path);
   };
@@ -109,21 +137,6 @@ function App() {
 
     setSaveDialogOpen(false);
     setSelectedFolderId(undefined);
-  };
-
-  const handleSave = () => {
-    if (!activeTab) return;
-    const existingRequest = findItem(activeTab.request.id);
-
-    if (existingRequest) {
-      // Request exists - update it directly
-      saveRequest(activeTab.request);
-      // Clear dirty flag after saving
-      updateTab(activeTab.id, { isDirty: false });
-    } else {
-      // New request - show dialog to select location
-      setSaveDialogOpen(true);
-    }
   };
 
   const handleCollectionRename = (item: CollectionItem) => {
