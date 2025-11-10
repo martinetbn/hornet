@@ -34,10 +34,11 @@ import { RequestBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import { useCollection, useTabs } from '@/features/collections/hooks';
 import { HttpRequest, CollectionItem, CollectionFolder, generateId } from '@/stores/collection-atoms';
-import { themeAtom } from '@/stores/theme-atoms';
+import { themeAtom, themePreferenceAtom, getSystemTheme, ThemePreference } from '@/stores/theme-atoms';
 
 function App() {
-  const [theme, setTheme] = useAtom(themeAtom);
+  const [theme] = useAtom(themeAtom);
+  const [themePreference, setThemePreference] = useAtom(themePreferenceAtom);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -68,8 +69,29 @@ function App() {
     }
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+  // Listen for system theme changes when preference is 'system'
+  useEffect(() => {
+    if (themePreference !== 'system') return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      const systemTheme = getSystemTheme();
+      if (systemTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [themePreference]);
+
+  const handleThemeChange = (newTheme: ThemePreference) => {
+    setThemePreference(newTheme);
   };
 
   const handleSave = useCallback(() => {
@@ -239,11 +261,12 @@ function App() {
               tabs={tabs}
               activeTabId={activeTabId}
               theme={theme}
+              themePreference={themePreference}
               onTabSelect={setActiveTabId}
               onTabClose={closeTab}
               onNewTab={handleNewRequest}
               onSave={handleSave}
-              onToggleTheme={toggleTheme}
+              onThemeChange={handleThemeChange}
               canSave={!!activeTab}
             />
 

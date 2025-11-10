@@ -1,6 +1,6 @@
 // Individual tree item (file or folder) in collection tree
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   Collapsible,
@@ -132,6 +132,7 @@ export function CollectionTreeItem({
 
   // Render folder item
   const folder = item as CollectionFolder;
+  const [isOpen, setIsOpen] = useState(folder.name === 'My APIs');
   const { setNodeRef: setDropRef } = useDroppable({
     id: item.id,
     data: { item, type: 'folder' },
@@ -140,8 +141,8 @@ export function CollectionTreeItem({
   return (
     <SidebarMenuItem ref={setDropRef} className="relative">
       <Collapsible
-        className="group/collapsible"
-        defaultOpen={folder.name === 'My APIs'}
+        open={isOpen}
+        onOpenChange={setIsOpen}
       >
         <div ref={setDragRef} {...(isRenaming ? {} : { ...attributes, ...listeners })} className="relative">
           {isOver && (
@@ -149,7 +150,7 @@ export function CollectionTreeItem({
           )}
           {isRenaming ? (
             <SidebarMenuButton className="cursor-text">
-              <ChevronRight className="transition-transform shrink-0 group-data-[state=open]/collapsible:rotate-90" />
+              <ChevronRight className={`transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-90' : ''}`} />
               <Folder className="shrink-0" />
               <Input
                 ref={inputRef}
@@ -176,7 +177,7 @@ export function CollectionTreeItem({
                   <SidebarMenuButton
                     className={`${isDragging ? 'opacity-50' : ''} ${isOver ? 'bg-accent/30' : ''}`}
                   >
-                    <ChevronRight className="transition-transform shrink-0 group-data-[state=open]/collapsible:rotate-90" />
+                    <ChevronRight className={`transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-90' : ''}`} />
                     <Folder className="shrink-0" />
                     <span className="truncate">{folder.name}</span>
                   </SidebarMenuButton>

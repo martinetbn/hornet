@@ -1,19 +1,27 @@
 // Main application header component
 
 import { Button } from '@/components/ui/button';
-import { Save, Moon, Sun } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Save, Moon, Sun, Monitor, Check } from 'lucide-react';
 import { TabBar } from '@/features/requests/components';
 import { Tab } from '@/stores/collection-atoms';
+import { ThemePreference } from '@/stores/theme-atoms';
 
 interface AppHeaderProps {
   tabs: Tab[];
   activeTabId: string | null;
   theme: 'light' | 'dark';
+  themePreference: ThemePreference;
   onTabSelect: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
   onNewTab: () => void;
   onSave?: () => void;
-  onToggleTheme: () => void;
+  onThemeChange: (theme: ThemePreference) => void;
   canSave?: boolean;
 }
 
@@ -21,13 +29,24 @@ export function AppHeader({
   tabs,
   activeTabId,
   theme,
+  themePreference,
   onTabSelect,
   onTabClose,
   onNewTab,
   onSave,
-  onToggleTheme,
+  onThemeChange,
   canSave = false,
 }: AppHeaderProps) {
+  const getThemeIcon = () => {
+    if (themePreference === 'system') return <Monitor className="size-4 mr-2" />;
+    return theme === 'light' ? <Sun className="size-4 mr-2" /> : <Moon className="size-4 mr-2" />;
+  };
+
+  const getThemeLabel = () => {
+    if (themePreference === 'system') return 'System';
+    return theme === 'light' ? 'Light' : 'Dark';
+  };
+
   return (
     <header className="sticky top-0 z-10 shrink-0 border-b bg-background">
       <div className="flex h-12 items-center gap-2 px-4">
@@ -40,13 +59,37 @@ export function AppHeader({
         />
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={!canSave} onClick={onSave}>
-            <Save className="size-4 mr-2" />
-            Save
-          </Button>
-          <Button variant="ghost" size="icon" onClick={onToggleTheme}>
-            {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
-          </Button>
+          {canSave && (
+            <Button variant="outline" size="sm" onClick={onSave}>
+              <Save className="size-4 mr-2" />
+              Save
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                {getThemeIcon()}
+                {getThemeLabel()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onThemeChange('light')}>
+                <Sun className="size-4 mr-2" />
+                Light
+                {themePreference === 'light' && <Check className="size-4 ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onThemeChange('dark')}>
+                <Moon className="size-4 mr-2" />
+                Dark
+                {themePreference === 'dark' && <Check className="size-4 ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onThemeChange('system')}>
+                <Monitor className="size-4 mr-2" />
+                System
+                {themePreference === 'system' && <Check className="size-4 ml-auto" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
