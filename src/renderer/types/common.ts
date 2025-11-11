@@ -33,4 +33,4 @@ export interface AuthConfig {
   };
 }
 
-export type BodyType = 'none' | 'json' | 'xml' | 'text' | 'form-data' | 'urlencoded';
+export type BodyType = 'none' | 'json' | 'xml' | 'html' | 'text' | 'form-data' | 'urlencoded';
