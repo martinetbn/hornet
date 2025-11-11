@@ -198,35 +198,38 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 text-xs font-medium text-muted-foreground px-1">
-                    <span className="w-8"></span>
-                    <span>Key</span>
-                    <span>Value</span>
-                    <span className="w-8"></span>
-                  </div>
                   {request.params.map((param, index) => (
-                    <div key={index} className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 items-center">
+                    <div key={index} className="w-full flex gap-2 items-center">
                       <Checkbox
                         checked={param.enabled !== false}
                         onCheckedChange={() => handleToggleParam(index)}
+                        className='mt-4'
                       />
-                      <Input
-                        value={param.key}
-                        onChange={(e) => handleParamChange(index, 'key', e.target.value)}
-                        placeholder="page"
-                        disabled={param.enabled === false}
-                      />
-                      <Input
-                        value={param.value}
-                        onChange={(e) => handleParamChange(index, 'value', e.target.value)}
-                        placeholder="1"
-                        disabled={param.enabled === false}
-                      />
+                      <div className='flex flex-col items-start gap-1 w-full'>
+                        <span className='text-xs font-medium text-muted-foreground'>Key</span>
+                        <Input
+                          value={param.key}
+                          onChange={(e) => handleParamChange(index, 'key', e.target.value)}
+                          placeholder="page"
+                          disabled={param.enabled === false}
+                          className='w-full'
+                        />
+                      </div>
+                      <div className='flex flex-col items-start gap-1 w-full'>
+                        <span className='text-xs font-medium text-muted-foreground'>Value</span>
+                        <Input
+                          value={param.value}
+                          onChange={(e) => handleParamChange(index, 'value', e.target.value)}
+                          placeholder="1"
+                          disabled={param.enabled === false}
+                          className='w-full'
+                        />
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveParam(index)}
-                        className="size-8"
+                        className="size-8 mt-4"
                       >
                         <X className="size-4" />
                       </Button>
