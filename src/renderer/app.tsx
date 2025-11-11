@@ -109,18 +109,23 @@ function App() {
     }
   }, [activeTab, findItem, saveRequest, updateTab, setSaveDialogOpen]);
 
-  // Add keyboard shortcut for save (Ctrl/Cmd + S)
+  // Add keyboard shortcuts (Ctrl/Cmd + S to save, Ctrl/Cmd + W to close tab)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+        e.preventDefault();
+        if (activeTabId) {
+          closeTab(activeTabId);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave]);
+  }, [handleSave, activeTabId, closeTab]);
 
   const handleFileSelect = (request: unknown, path: string[]) => {
     openTab(request as HttpRequest, path);

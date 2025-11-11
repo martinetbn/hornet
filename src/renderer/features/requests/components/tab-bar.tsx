@@ -33,6 +33,13 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
             tab.id === activeTabId ? 'bg-muted' : 'hover:bg-muted/50'
           }`}
           onClick={() => onTabSelect(tab.id)}
+          onMouseDown={(e) => {
+            // Middle mouse button closes tab
+            if (e.button === 1) {
+              e.preventDefault();
+              onTabClose(tab.id);
+            }
+          }}
         >
           <div className="flex items-center gap-1.5 min-w-0">
             {tab.isDirty && (
