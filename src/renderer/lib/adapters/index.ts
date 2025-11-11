@@ -1,6 +1,6 @@
 // Protocol adapter factory and exports
 
-import { ProtocolType } from '@/types';
+import type { ProtocolType } from '@/types';
 import { HttpAdapter } from './http-adapter';
 import { WebSocketAdapter } from './websocket-adapter';
 import { SocketIOAdapter } from './socketio-adapter';

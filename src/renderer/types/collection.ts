@@ -1,6 +1,6 @@
 // Collection type definitions
 
-import { Request } from './request';
+import type { Request } from './request';
 
 export interface Collection {
   id: string;

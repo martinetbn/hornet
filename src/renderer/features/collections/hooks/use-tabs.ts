@@ -1,14 +1,15 @@
 // Tab management hook
 
 import { useAtom } from 'jotai';
-import { tabsAtom, activeTabIdAtom, Tab, HttpRequest } from '@/stores/collection-atoms';
+import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
+import type { Tab, HttpRequest } from '@/stores/collection-atoms';
 import { useCallback } from 'react';
 
 export function useTabs() {
   const [tabs, setTabs] = useAtom(tabsAtom);
   const [activeTabId, setActiveTabId] = useAtom(activeTabIdAtom);
 
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;
 
   // Open request in a new tab or switch to existing tab
   const openTab = useCallback(

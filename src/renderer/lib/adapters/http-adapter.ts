@@ -1,8 +1,9 @@
 // HTTP Protocol Adapter
 
-import axios, { AxiosInstance, AxiosRequestConfig, CancelTokenSource } from 'axios';
-import { HttpRequest, HttpResponse } from '@/types';
-import { ProtocolAdapter } from './base';
+import axios from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, CancelTokenSource } from 'axios';
+import type { HttpRequest, HttpResponse } from '@/types';
+import type { ProtocolAdapter } from './base';
 
 export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   private client: AxiosInstance;

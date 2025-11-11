@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Save, Moon, Sun, Monitor, Check } from 'lucide-react';
 import { TabBar } from '@/features/requests/components';
-import { Tab } from '@/stores/collection-atoms';
-import { ThemePreference } from '@/stores/theme-atoms';
+import type { Tab } from '@/stores/collection-atoms';
+import type { ThemePreference } from '@/stores/theme-atoms';
 
 interface AppHeaderProps {
   tabs: Tab[];

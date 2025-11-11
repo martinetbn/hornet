@@ -1,7 +1,7 @@
 // Request-related state atoms
 
 import { atom } from 'jotai';
-import { HttpRequest } from '@/types';
+import type { HttpRequest } from '@/types';
 
 // Current request being edited/viewed
 export const currentRequestAtom = atom<HttpRequest | null>(null);

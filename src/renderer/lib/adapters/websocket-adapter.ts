@@ -1,7 +1,7 @@
 // WebSocket Protocol Adapter
 
-import { WebSocketConfig, WebSocketMessage } from '@/types';
-import { ConnectionAdapter, ConnectionStatus } from './base';
+import type { WebSocketConfig, WebSocketMessage } from '@/types';
+import type { ConnectionAdapter, ConnectionStatus } from './base';
 
 export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebSocketMessage> {
   private ws?: WebSocket;

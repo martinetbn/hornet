@@ -5,8 +5,8 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
 
 interface UseCollectionDragDropProps {
-  collections: CollectionFolder[];
-  setCollections: (collections: CollectionFolder[]) => void;
+  collections: CollectionItem[];
+  setCollections: (collections: CollectionItem[]) => void;
 }
 
 export function useCollectionDragDrop({ collections, setCollections }: UseCollectionDragDropProps) {
@@ -21,14 +21,15 @@ export function useCollectionDragDrop({ collections, setCollections }: UseCollec
       if (!draggedItem) return;
 
       // Remove item from its current location
-      let updatedCollections: CollectionFolder[] = collections.filter(
-        (item: CollectionFolder) => item.id !== draggedItem.id
+      let updatedCollections: CollectionItem[] = collections.filter(
+        (item: CollectionItem) => item.id !== draggedItem.id
       );
 
-      const removeFromCollectionsRecursive = (items: CollectionFolder[]): CollectionFolder[] => {
+      const removeFromCollectionsRecursive = (items: CollectionItem[]): CollectionItem[] => {
         return items
-          .filter((item: CollectionFolder) => item.id !== draggedItem.id)
-          .map((item: CollectionFolder) => {
+          .filter((item: CollectionItem) => item.id !== draggedItem.id)
+          .map((item: CollectionItem) => {
+            if (!('type' in item && item.type === 'folder')) return item;
             return {
               ...item,
               children: item.children
@@ -72,11 +73,12 @@ export function useCollectionDragDrop({ collections, setCollections }: UseCollec
         const targetFolder = over.data.current?.item as CollectionFolder;
         if (targetFolder && 'type' in targetFolder && targetFolder.type === 'folder') {
           const addToFolderRecursive = (
-            items: CollectionFolder[],
+            items: CollectionItem[],
             targetId: string,
             item: CollectionItem
-          ): CollectionFolder[] => {
+          ): CollectionItem[] => {
             return items.map((currentItem) => {
+              if (!('type' in currentItem && currentItem.type === 'folder')) return currentItem;
               if (currentItem.id === targetId) {
                 return {
                   ...currentItem,

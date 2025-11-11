@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Folder, File, ChevronRight } from 'lucide-react';
-import { CollectionItem, CollectionFolder, RequestConfig } from '@/stores/collection-atoms';
+import type { CollectionItem, CollectionFolder, HttpRequest } from '@/stores/collection-atoms';
 
 interface CollectionTreeItemProps {
   item: CollectionItem;
@@ -75,7 +75,7 @@ export function CollectionTreeItem({
 
   // Render request item
   if (!isFolder) {
-    const request = item as RequestConfig;
+    const request = item as HttpRequest;
     return (
       <div className="relative">
         {isOver && (

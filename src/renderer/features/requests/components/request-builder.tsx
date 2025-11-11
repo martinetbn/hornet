@@ -27,7 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Send, Loader2, X } from 'lucide-react';
 import { useRequest } from '../hooks';
-import { HttpRequest, HttpMethod } from '@/types';
+import type { HttpRequest, HttpMethod } from '@/types';
 
 interface RequestBuilderProps {
   request: HttpRequest;
@@ -76,7 +76,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
   const handleHeaderChange = (index: number, field: 'key' | 'value', value: string) => {
     const newHeaders = [...(request.headers || [])];
-    newHeaders[index] = { ...newHeaders[index], [field]: value };
+    newHeaders[index] = { key: '', value: '', enabled: true, ...newHeaders[index], [field]: value };
     onRequestChange?.({ ...request, headers: newHeaders, updatedAt: Date.now() });
   };
 
@@ -87,7 +87,10 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
   const handleToggleHeader = (index: number) => {
     const newHeaders = [...(request.headers || [])];
-    newHeaders[index] = { ...newHeaders[index], enabled: !newHeaders[index].enabled };
+    const current = newHeaders[index];
+    if (current) {
+      newHeaders[index] = { ...current, enabled: !current.enabled };
+    }
     onRequestChange?.({ ...request, headers: newHeaders, updatedAt: Date.now() });
   };
 
@@ -98,7 +101,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
   const handleParamChange = (index: number, field: 'key' | 'value', value: string) => {
     const newParams = [...(request.params || [])];
-    newParams[index] = { ...newParams[index], [field]: value };
+    newParams[index] = { key: '', value: '', enabled: true, ...newParams[index], [field]: value };
     onRequestChange?.({ ...request, params: newParams, updatedAt: Date.now() });
   };
 
@@ -109,7 +112,10 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
   const handleToggleParam = (index: number) => {
     const newParams = [...(request.params || [])];
-    newParams[index] = { ...newParams[index], enabled: !newParams[index].enabled };
+    const current = newParams[index];
+    if (current) {
+      newParams[index] = { ...current, enabled: !current.enabled };
+    }
     onRequestChange?.({ ...request, params: newParams, updatedAt: Date.now() });
   };
 

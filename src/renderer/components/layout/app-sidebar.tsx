@@ -1,6 +1,6 @@
 // Main application sidebar component
 
-import { DragEndEvent } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import {
   Sidebar,
   SidebarContent,
@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Folder, History, Settings, Globe, Plus } from 'lucide-react';
 import { CollectionTree } from '@/features/collections/components';
-import { CollectionItem } from '@/stores/collection-atoms';
+import type { CollectionItem } from '@/stores/collection-atoms';
 
 interface AppSidebarProps {
   collections: CollectionItem[];

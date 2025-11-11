@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
-import { Tab } from '@/stores/collection-atoms';
+import type { Tab } from '@/stores/collection-atoms';
 
 interface TabBarProps {
   tabs: Tab[];

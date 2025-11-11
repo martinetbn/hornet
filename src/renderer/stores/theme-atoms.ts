@@ -24,8 +24,8 @@ export const themePreferenceAtom = atomWithStorage<ThemePreference>(
 );
 
 // Computed atom that resolves the actual theme based on preference
-export const themeAtom = atom<Theme>((get) => {
-  const preference = get(themePreferenceAtom);
+export const themeAtom = atom(async (get) => {
+  const preference = await get(themePreferenceAtom);
   if (preference === 'system') {
     return getSystemTheme();
   }

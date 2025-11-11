@@ -3,7 +3,7 @@
 import { useAtom, useSetAtom } from 'jotai';
 import { useCallback, useRef } from 'react';
 import { HttpAdapter } from '@/lib/adapters/http-adapter';
-import { HttpRequest } from '@/types';
+import type { HttpRequest } from '@/types';
 import {
   requestLoadingAtom,
   requestErrorAtom,

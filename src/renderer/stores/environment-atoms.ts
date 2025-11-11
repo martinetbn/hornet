@@ -2,7 +2,7 @@
 
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { Environment } from '@/types';
+import type { Environment } from '@/types';
 import { electronStorage } from '@/lib/adapters/electron-storage';
 
 // Environments persisted to disk
@@ -22,17 +22,17 @@ export const selectedEnvironmentIdAtom = atomWithStorage<string | null>(
 );
 
 // Derived: Current environment
-export const currentEnvironmentAtom = atom((get) => {
-  const environments = get(environmentsAtom);
-  const selectedId = get(selectedEnvironmentIdAtom);
-  return environments.find((e) => e.id === selectedId) ?? null;
+export const currentEnvironmentAtom = atom(async (get) => {
+  const environments = await get(environmentsAtom);
+  const selectedId = await get(selectedEnvironmentIdAtom);
+  return environments.find((e: Environment) => e.id === selectedId) ?? null;
 });
 
 // Helper: Resolve variables in string
 export const resolveVariablesAtom = atom(
   null,
-  (get, _set, text: string): string => {
-    const environment = get(currentEnvironmentAtom);
+  async (get, _set, text: string): Promise<string> => {
+    const environment = await get(currentEnvironmentAtom);
     if (!environment) return text;
 
     return text.replace(/\{\{(\w+)\}\}/g, (_, key) => {

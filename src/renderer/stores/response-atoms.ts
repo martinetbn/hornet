@@ -1,7 +1,7 @@
 // Response-related state atoms
 
 import { atom } from 'jotai';
-import { HttpResponse } from '@/types';
+import type { HttpResponse } from '@/types';
 
 // Current response data
 export const currentResponseAtom = atom<HttpResponse | null>(null);

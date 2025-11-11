@@ -1,9 +1,9 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { electronStorage } from '@/lib/adapters/electron-storage';
-import { CollectionFolder, Tab, CollectionItem } from '@/types/collection';
-import { HttpRequest } from '@/types/request';
-import { HttpMethod } from '@/types/common';
+import type { CollectionFolder, Tab, CollectionItem } from '@/types/collection';
+import type { HttpRequest } from '@/types/request';
+import type { HttpMethod } from '@/types/common';
 
 // Legacy RequestConfig for backward compatibility during migration
 interface LegacyRequestConfig {
@@ -64,7 +64,7 @@ const isLegacyRequest = (item: any): item is LegacyRequestConfig => {
 };
 
 // Helper to migrate collections
-const migrateCollections = (collections: any[]): CollectionFolder[] => {
+const migrateCollections = (collections: any[]): CollectionItem[] => {
   return collections.map((item) => {
     if (item.type === 'folder') {
       return {
@@ -73,7 +73,7 @@ const migrateCollections = (collections: any[]): CollectionFolder[] => {
       };
     }
     return isLegacyRequest(item) ? migrateRequestConfig(item) : item;
-  }) as CollectionFolder[];
+  }) as CollectionItem[];
 };
 
 // Helper to migrate collection items
@@ -93,12 +93,12 @@ const migrateCollectionItems = (items: any[]): CollectionItem[] => {
 export type { CollectionFolder, Tab, CollectionItem, HttpRequest };
 
 // Create a migrating storage wrapper that applies migration on read
-const migratingCollectionStorage = (): ReturnType<typeof electronStorage<CollectionFolder[]>> => {
-  const baseStorage = electronStorage<CollectionFolder[]>();
+const migratingCollectionStorage = (): ReturnType<typeof electronStorage<CollectionItem[]>> => {
+  const baseStorage = electronStorage<CollectionItem[]>();
 
   return {
     ...baseStorage,
-    getItem: async (key: string, initialValue: CollectionFolder[]): Promise<CollectionFolder[]> => {
+    getItem: async (key: string, initialValue: CollectionItem[]): Promise<CollectionItem[]> => {
       const value = await baseStorage.getItem(key, initialValue);
       // Apply migration to convert legacy requests to HttpRequest
       return migrateCollections(value);
@@ -107,7 +107,7 @@ const migratingCollectionStorage = (): ReturnType<typeof electronStorage<Collect
 };
 
 // Persistent atom for collections using Electron storage with migration
-export const collectionsAtom = atomWithStorage<CollectionFolder[]>(
+export const collectionsAtom = atomWithStorage<CollectionItem[]>(
   'collections',
   [],
   migratingCollectionStorage(),

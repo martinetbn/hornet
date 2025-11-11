@@ -2,16 +2,18 @@
 
 import {
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import type {
+  DragEndEvent,
+  DragOverEvent,
+} from '@dnd-kit/core';
 import {
   SidebarMenu,
 } from '@/components/ui/sidebar';
-import { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
+import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
 import { CollectionTreeItem } from './collection-tree-item';
 import { RootDroppable, RootTopDroppable } from './root-droppable';
 import { useState } from 'react';

@@ -1,6 +1,6 @@
 // Request type definitions
 
-import { HttpMethod, ProtocolType, KeyValuePair, AuthConfig, BodyType } from './common';
+import type { HttpMethod, ProtocolType, KeyValuePair, AuthConfig, BodyType } from './common';
 
 export interface BaseRequest {
   id: string;

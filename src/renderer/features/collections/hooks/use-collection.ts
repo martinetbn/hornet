@@ -1,7 +1,8 @@
 // Collection management hook
 
 import { useAtom } from 'jotai';
-import { collectionsAtom, CollectionItem, CollectionFolder, HttpRequest, generateId } from '@/stores/collection-atoms';
+import { collectionsAtom, generateId } from '@/stores/collection-atoms';
+import type { CollectionItem, CollectionFolder, HttpRequest } from '@/stores/collection-atoms';
 import { useCallback } from 'react';
 
 export function useCollection() {

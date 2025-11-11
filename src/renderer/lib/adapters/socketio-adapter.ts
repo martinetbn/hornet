@@ -1,8 +1,8 @@
 // Socket.IO Protocol Adapter
 
 import { io, Socket } from 'socket.io-client';
-import { SocketIOConfig, SocketIOMessage } from '@/types';
-import { ConnectionAdapter, ConnectionStatus } from './base';
+import type { SocketIOConfig, SocketIOMessage } from '@/types';
+import type { ConnectionAdapter, ConnectionStatus } from './base';
 
 export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, SocketIOMessage> {
   private socket?: Socket;

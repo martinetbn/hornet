@@ -1,8 +1,8 @@
 // Connection-related state atoms for WebSocket, Socket.IO, and gRPC
 
 import { atom } from 'jotai';
-import { Connection } from '@/types/protocol';
-import { WebSocketMessage, SocketIOMessage } from '@/types';
+import type { Connection } from '@/types/protocol';
+import type { WebSocketMessage, SocketIOMessage } from '@/types';
 
 // Map of active connections by ID
 export const connectionsAtom = atom<Map<string, Connection>>(new Map());
