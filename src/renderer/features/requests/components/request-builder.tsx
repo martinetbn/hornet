@@ -177,16 +177,15 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
         {/* Request Configuration Tabs */}
         <Tabs defaultValue="params" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="params">Params</TabsTrigger>
             <TabsTrigger value="headers">Headers</TabsTrigger>
             <TabsTrigger value="body">Body</TabsTrigger>
-            <TabsTrigger value="auth">Auth</TabsTrigger>
           </TabsList>
 
           <TabsContent value="params" className="space-y-4">
             <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-start justify-between mb-4">
                 <span className="text-sm font-medium">Query Parameters</span>
                 <Button variant="outline" size="sm" onClick={handleAddParam}>
                   <Plus className="size-4 mr-2" />
@@ -240,7 +239,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
           <TabsContent value="headers" className="space-y-4">
             <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-start justify-between mb-4">
                 <span className="text-sm font-medium">Headers</span>
                 <Button variant="outline" size="sm" onClick={handleAddHeader}>
                   <Plus className="size-4 mr-2" />
@@ -253,35 +252,38 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 text-xs font-medium text-muted-foreground px-1">
-                    <span className="w-8"></span>
-                    <span>Key</span>
-                    <span>Value</span>
-                    <span className="w-8"></span>
-                  </div>
                   {request.headers.map((header, index) => (
-                    <div key={index} className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 items-center">
+                    <div key={index} className="w-full flex gap-2 items-center">
                       <Checkbox
                         checked={header.enabled !== false}
                         onCheckedChange={() => handleToggleHeader(index)}
+                        className='mt-4'
                       />
-                      <Input
-                        value={header.key}
-                        onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                        placeholder="Content-Type"
-                        disabled={header.enabled === false}
-                      />
-                      <Input
-                        value={header.value}
-                        onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-                        placeholder="application/json"
-                        disabled={header.enabled === false}
-                      />
+                      <div className='flex flex-col items-start gap-1 w-full'>
+                        <span className='text-xs font-medium text-muted-foreground'>Key</span>
+                        <Input
+                          value={header.key}
+                          onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
+                          placeholder="Content-Type"
+                          disabled={header.enabled === false}
+                          className='w-full'
+                        />
+                      </div>
+                      <div className='flex flex-col items-start gap-1 w-full'>
+                        <span className='text-xs font-medium text-muted-foreground'>Value</span>
+                        <Input
+                          value={header.value}
+                          onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
+                          placeholder="application/json"
+                          disabled={header.enabled === false}
+                          className='w-full'
+                        />
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveHeader(index)}
-                        className="size-8"
+                        className="size-8 mt-4"
                       >
                         <X className="size-4" />
                       </Button>
@@ -294,7 +296,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
 
           <TabsContent value="body" className="space-y-4">
             <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-start justify-between mb-4">
                 <span className="text-sm font-medium">Request Body</span>
                 <Select value={request.body?.type || 'json'} onValueChange={handleBodyTypeChange}>
                   <SelectTrigger className="w-32">
@@ -314,28 +316,6 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
                 placeholder='{\n  "name": "John Doe",\n  "email": "john@example.com"\n}'
                 className="font-mono text-sm min-h-[200px]"
               />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="auth" className="space-y-4">
-            <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium">Authentication</span>
-                <Select defaultValue="none">
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Auth</SelectItem>
-                    <SelectItem value="bearer">Bearer Token</SelectItem>
-                    <SelectItem value="basic">Basic Auth</SelectItem>
-                    <SelectItem value="api-key">API Key</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="text-sm text-muted-foreground text-center py-8">
-                Select an authentication method
-              </div>
             </div>
           </TabsContent>
         </Tabs>
