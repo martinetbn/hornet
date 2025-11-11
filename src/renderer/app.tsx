@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { createRoot } from 'react-dom/client';
-import { DragEndEvent } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,8 +33,10 @@ import { AppSidebar, AppHeader } from '@/components/layout';
 import { RequestBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import { useCollection, useTabs } from '@/features/collections/hooks';
-import { HttpRequest, CollectionItem, CollectionFolder, generateId } from '@/stores/collection-atoms';
-import { themeAtom, themePreferenceAtom, getSystemTheme, ThemePreference } from '@/stores/theme-atoms';
+import type { HttpRequest, CollectionItem, CollectionFolder, Tab } from '@/stores/collection-atoms';
+import { generateId } from '@/stores/collection-atoms';
+import { themeAtom, themePreferenceAtom, getSystemTheme } from '@/stores/theme-atoms';
+import type { ThemePreference } from '@/stores/theme-atoms';
 
 function App() {
   const [theme] = useAtom(themeAtom);
@@ -48,7 +50,6 @@ function App() {
   const {
     collections,
     setCollections,
-    addToFolder,
     removeItem,
     renameItem,
     findItem,
@@ -100,7 +101,7 @@ function App() {
 
     if (existingRequest) {
       // Request exists - update it directly
-      saveRequest(activeTab.request);
+      saveRequest(activeTab.request as HttpRequest);
       // Clear dirty flag after saving
       updateTab(activeTab.id, { isDirty: false });
     } else {
@@ -156,7 +157,7 @@ function App() {
   const handleSaveRequest = () => {
     if (!activeTab) return;
     const folderId = selectedFolderId === '__root__' ? undefined : selectedFolderId;
-    saveRequest(activeTab.request, folderId);
+    saveRequest(activeTab.request as HttpRequest, folderId);
 
     // Update tab with new path and clear dirty flag
     const newPath = findPath(activeTab.request.id) || [activeTab.request.name];
@@ -172,8 +173,8 @@ function App() {
 
     // Also update tabs if a request was renamed
     if (!('type' in item)) {
-      const updatedTabs = tabs.filter((tab) => tab.request.id === item.id);
-      updatedTabs.forEach((tab) => {
+      const updatedTabs = tabs.filter((tab: Tab) => tab.request.id === item.id);
+      updatedTabs.forEach((tab: Tab) => {
         updateTab(tab.id, { name: item.name, request: { ...tab.request, name: item.name } });
       });
     }
@@ -189,33 +190,70 @@ function App() {
     if (!draggedItem) return;
 
     // Remove item from its current location
-    let updatedCollections = collections.filter((item) => item.id !== draggedItem.id);
+    let updatedCollections: CollectionFolder[] = collections.filter((item) => item.id !== draggedItem.id);
 
-    const removeFromCollectionsRecursive = (items: CollectionItem[]): CollectionItem[] => {
+    const removeFromCollectionsRecursive = (items: CollectionFolder[]): CollectionFolder[] => {
       return items
         .filter((item) => item.id !== draggedItem.id)
         .map((item) => {
-          if ('type' in item && item.type === 'folder') {
-            return {
-              ...item,
-              children: removeFromCollectionsRecursive(item.children),
-            };
+          return {
+            ...item,
+            children: item.children.filter(child => child.id !== draggedItem.id).map(child => {
+              if ('type' in child && child.type === 'folder') {
+                return removeFromCollectionItemRecursive(child);
+              }
+              return child;
+            }),
+          };
+        });
+    };
+
+    const removeFromCollectionItemRecursive = (folder: CollectionFolder): CollectionFolder => {
+      return {
+        ...folder,
+        children: folder.children.filter(child => child.id !== draggedItem.id).map(child => {
+          if ('type' in child && child.type === 'folder') {
+            return removeFromCollectionItemRecursive(child);
           }
-          return item;
-        }) as CollectionItem[];
+          return child;
+        }),
+      };
     };
 
     updatedCollections = removeFromCollectionsRecursive(updatedCollections);
 
     // Add item to new location
     if (over.id === 'root-droppable') {
-      updatedCollections = [...updatedCollections, draggedItem];
+      if ('type' in draggedItem && draggedItem.type === 'folder') {
+        updatedCollections = [...updatedCollections, draggedItem];
+      }
     } else if (over.id === 'root-top') {
-      updatedCollections = [draggedItem, ...updatedCollections];
+      if ('type' in draggedItem && draggedItem.type === 'folder') {
+        updatedCollections = [draggedItem, ...updatedCollections];
+      }
     } else {
       const targetFolder = over.data.current?.item as CollectionFolder;
       if (targetFolder && 'type' in targetFolder && targetFolder.type === 'folder') {
         const addToFolderRecursive = (
+          items: CollectionFolder[],
+          targetId: string,
+          item: CollectionItem
+        ): CollectionFolder[] => {
+          return items.map((currentItem) => {
+            if (currentItem.id === targetId) {
+              return {
+                ...currentItem,
+                children: [...currentItem.children, item],
+              };
+            }
+            return {
+              ...currentItem,
+              children: addToFolderItemRecursive(currentItem.children, targetId, item),
+            };
+          });
+        };
+
+        const addToFolderItemRecursive = (
           items: CollectionItem[],
           targetId: string,
           item: CollectionItem
@@ -230,11 +268,11 @@ function App() {
               }
               return {
                 ...currentItem,
-                children: addToFolderRecursive(currentItem.children, targetId, item),
+                children: addToFolderItemRecursive(currentItem.children, targetId, item),
               };
             }
             return currentItem;
-          }) as CollectionItem[];
+          });
         };
 
         updatedCollections = addToFolderRecursive(updatedCollections, targetFolder.id, draggedItem);
@@ -297,8 +335,8 @@ function App() {
               {activeTab && (
                 <>
                   <RequestBuilder
-                    request={activeTab.request}
-                    onRequestChange={(updatedRequest) => {
+                    request={activeTab.request as HttpRequest}
+                    onRequestChange={(updatedRequest: HttpRequest) => {
                       // Update the tab with the modified request and mark as dirty
                       updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
                     }}
@@ -329,7 +367,7 @@ function App() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__root__">None - Save to root</SelectItem>
-                  {getAllFolders().map((folder) => (
+                  {getAllFolders().map((folder: CollectionFolder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.name}
                     </SelectItem>
@@ -362,9 +400,9 @@ function App() {
               <Input
                 id="folderName"
                 value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewFolderName(e.target.value)}
                 placeholder="My API Collection"
-                onKeyDown={(e) => {
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === 'Enter') {
                     handleCreateFolder();
                   }
