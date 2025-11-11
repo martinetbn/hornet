@@ -1,28 +1,9 @@
-// Main application component - refactored following documented architecture
+// Main application component - composition layer
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAtom } from 'jotai';
+import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { DragEndEvent } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import {
   ResizablePanelGroup,
@@ -32,21 +13,28 @@ import {
 import { AppSidebar, AppHeader } from '@/components/layout';
 import { RequestBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
-import { useCollection, useTabs } from '@/features/collections/hooks';
-import type { HttpRequest, CollectionItem, CollectionFolder, Tab } from '@/stores/collection-atoms';
+import {
+  useCollection,
+  useTabs,
+  useCollectionDragDrop,
+  useSaveRequest,
+} from '@/features/collections/hooks';
+import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
+import { useKeyboardShortcuts } from '@/features/requests/hooks';
+import { useTheme } from '@/features/settings/hooks';
+import type { HttpRequest, CollectionItem, Tab } from '@/stores/collection-atoms';
 import { generateId } from '@/stores/collection-atoms';
-import { themeAtom, themePreferenceAtom, getSystemTheme } from '@/stores/theme-atoms';
-import type { ThemePreference } from '@/stores/theme-atoms';
 
 function App() {
-  const [theme] = useAtom(themeAtom);
-  const [themePreference, setThemePreference] = useAtom(themePreferenceAtom);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
 
-  // Use custom hooks for state management
+  // Theme management
+  const { theme, themePreference, setTheme } = useTheme();
+
+  // Collection management
   const {
     collections,
     setCollections,
@@ -59,74 +47,29 @@ function App() {
     findPath,
   } = useCollection();
 
+  // Tab management
   const { tabs, activeTab, activeTabId, setActiveTabId, openTab, closeTab, updateTab, createNewTab } = useTabs();
 
-  // Sync dark class with theme atom
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
+  // Use custom hooks for business logic
+  const { handleSave, handleSaveToFolder } = useSaveRequest({
+    activeTab,
+    findItem,
+    saveRequest,
+    updateTab,
+    findPath,
+    onShowSaveDialog: () => setSaveDialogOpen(true),
+  });
 
-  // Listen for system theme changes when preference is 'system'
-  useEffect(() => {
-    if (themePreference !== 'system') return;
+  const { handleDragEnd } = useCollectionDragDrop({
+    collections,
+    setCollections,
+  });
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      const systemTheme = getSystemTheme();
-      if (systemTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-  }, [themePreference]);
-
-  const handleThemeChange = (newTheme: ThemePreference) => {
-    setThemePreference(newTheme);
-  };
-
-  const handleSave = useCallback(() => {
-    if (!activeTab) return;
-    const existingRequest = findItem(activeTab.request.id);
-
-    if (existingRequest) {
-      // Request exists - update it directly
-      saveRequest(activeTab.request as HttpRequest);
-      // Clear dirty flag after saving
-      updateTab(activeTab.id, { isDirty: false });
-    } else {
-      // New request - show dialog to select location
-      setSaveDialogOpen(true);
-    }
-  }, [activeTab, findItem, saveRequest, updateTab, setSaveDialogOpen]);
-
-  // Add keyboard shortcuts (Ctrl/Cmd + S to save, Ctrl/Cmd + W to close tab)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
-        e.preventDefault();
-        if (activeTabId) {
-          closeTab(activeTabId);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, activeTabId, closeTab]);
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSave: handleSave,
+    onCloseTab: activeTabId ? () => closeTab(activeTabId) : undefined,
+  });
 
   const handleFileSelect = (request: unknown, path: string[]) => {
     openTab(request as HttpRequest, path);
@@ -154,15 +97,10 @@ function App() {
     }
   };
 
-  const handleSaveRequest = () => {
+  const handleSaveRequestToFolder = () => {
     if (!activeTab) return;
     const folderId = selectedFolderId === '__root__' ? undefined : selectedFolderId;
-    saveRequest(activeTab.request as HttpRequest, folderId);
-
-    // Update tab with new path and clear dirty flag
-    const newPath = findPath(activeTab.request.id) || [activeTab.request.name];
-    updateTab(activeTab.id, { path: newPath, isDirty: false });
-
+    handleSaveToFolder(folderId);
     setSaveDialogOpen(false);
     setSelectedFolderId(undefined);
   };
@@ -178,108 +116,6 @@ function App() {
         updateTab(tab.id, { name: item.name, request: { ...tab.request, name: item.name } });
       });
     }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) return;
-
-    const draggedItem = active.data.current?.item as CollectionItem;
-
-    if (!draggedItem) return;
-
-    // Remove item from its current location
-    let updatedCollections: CollectionFolder[] = collections.filter((item) => item.id !== draggedItem.id);
-
-    const removeFromCollectionsRecursive = (items: CollectionFolder[]): CollectionFolder[] => {
-      return items
-        .filter((item) => item.id !== draggedItem.id)
-        .map((item) => {
-          return {
-            ...item,
-            children: item.children.filter(child => child.id !== draggedItem.id).map(child => {
-              if ('type' in child && child.type === 'folder') {
-                return removeFromCollectionItemRecursive(child);
-              }
-              return child;
-            }),
-          };
-        });
-    };
-
-    const removeFromCollectionItemRecursive = (folder: CollectionFolder): CollectionFolder => {
-      return {
-        ...folder,
-        children: folder.children.filter(child => child.id !== draggedItem.id).map(child => {
-          if ('type' in child && child.type === 'folder') {
-            return removeFromCollectionItemRecursive(child);
-          }
-          return child;
-        }),
-      };
-    };
-
-    updatedCollections = removeFromCollectionsRecursive(updatedCollections);
-
-    // Add item to new location
-    if (over.id === 'root-droppable') {
-      if ('type' in draggedItem && draggedItem.type === 'folder') {
-        updatedCollections = [...updatedCollections, draggedItem];
-      }
-    } else if (over.id === 'root-top') {
-      if ('type' in draggedItem && draggedItem.type === 'folder') {
-        updatedCollections = [draggedItem, ...updatedCollections];
-      }
-    } else {
-      const targetFolder = over.data.current?.item as CollectionFolder;
-      if (targetFolder && 'type' in targetFolder && targetFolder.type === 'folder') {
-        const addToFolderRecursive = (
-          items: CollectionFolder[],
-          targetId: string,
-          item: CollectionItem
-        ): CollectionFolder[] => {
-          return items.map((currentItem) => {
-            if (currentItem.id === targetId) {
-              return {
-                ...currentItem,
-                children: [...currentItem.children, item],
-              };
-            }
-            return {
-              ...currentItem,
-              children: addToFolderItemRecursive(currentItem.children, targetId, item),
-            };
-          });
-        };
-
-        const addToFolderItemRecursive = (
-          items: CollectionItem[],
-          targetId: string,
-          item: CollectionItem
-        ): CollectionItem[] => {
-          return items.map((currentItem) => {
-            if ('type' in currentItem && currentItem.type === 'folder') {
-              if (currentItem.id === targetId) {
-                return {
-                  ...currentItem,
-                  children: [...currentItem.children, item],
-                };
-              }
-              return {
-                ...currentItem,
-                children: addToFolderItemRecursive(currentItem.children, targetId, item),
-              };
-            }
-            return currentItem;
-          });
-        };
-
-        updatedCollections = addToFolderRecursive(updatedCollections, targetFolder.id, draggedItem);
-      }
-    }
-
-    setCollections(updatedCollections);
   };
 
   return (
@@ -309,7 +145,7 @@ function App() {
               onTabClose={closeTab}
               onNewTab={handleNewRequest}
               onSave={handleSave}
-              onThemeChange={handleThemeChange}
+              onThemeChange={setTheme}
               canSave={!!activeTab}
             />
 
@@ -349,77 +185,24 @@ function App() {
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* Save Request Dialog */}
-      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Save Request</DialogTitle>
-            <DialogDescription>
-              Save "{activeTab?.name}" to your collections
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="folder">Select Folder (Optional)</Label>
-              <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
-                <SelectTrigger id="folder">
-                  <SelectValue placeholder="None - Save to root" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__root__">None - Save to root</SelectItem>
-                  {getAllFolders().map((folder: CollectionFolder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveRequest}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dialogs */}
+      <SaveRequestDialog
+        open={saveDialogOpen}
+        requestName={activeTab?.name || ''}
+        folders={getAllFolders()}
+        selectedFolderId={selectedFolderId}
+        onOpenChange={setSaveDialogOpen}
+        onFolderChange={setSelectedFolderId}
+        onSave={handleSaveRequestToFolder}
+      />
 
-      {/* Create Folder Dialog */}
-      <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Folder</DialogTitle>
-            <DialogDescription>
-              Create a new folder to organize your requests
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="folderName">Folder Name</Label>
-              <Input
-                id="folderName"
-                value={newFolderName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewFolderName(e.target.value)}
-                placeholder="My API Collection"
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === 'Enter') {
-                    handleCreateFolder();
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFolderDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateFolder} disabled={!newFolderName.trim()}>
-              Create
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateFolderDialog
+        open={folderDialogOpen}
+        folderName={newFolderName}
+        onOpenChange={setFolderDialogOpen}
+        onFolderNameChange={setNewFolderName}
+        onCreate={handleCreateFolder}
+      />
     </SidebarProvider>
   );
 }
