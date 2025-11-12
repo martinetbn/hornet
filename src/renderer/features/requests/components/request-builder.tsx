@@ -22,7 +22,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Send, Loader2 } from 'lucide-react';
 import { useRequest } from '../hooks';
 import type { HttpRequest, HttpMethod } from '@/types';
@@ -78,19 +77,19 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="GET">
-                <Badge variant="outline">GET</Badge>
+                <span className="font-semibold text-green-500">GET</span>
               </SelectItem>
               <SelectItem value="POST">
-                <Badge variant="outline">POST</Badge>
+                <span className="font-semibold text-yellow-500">POST</span>
               </SelectItem>
               <SelectItem value="PUT">
-                <Badge variant="outline">PUT</Badge>
+                <span className="font-semibold text-blue-500">PUT</span>
               </SelectItem>
               <SelectItem value="PATCH">
-                <Badge variant="outline">PATCH</Badge>
+                <span className="font-semibold text-purple-500">PATCH</span>
               </SelectItem>
               <SelectItem value="DELETE">
-                <Badge variant="outline">DELETE</Badge>
+                <span className="font-semibold text-red-500">DELETE</span>
               </SelectItem>
             </SelectContent>
           </Select>
