@@ -2,7 +2,7 @@
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
-export type ProtocolType = 'http' | 'websocket' | 'socketio' | 'grpc' | 'sse';
+export type ProtocolType = 'http' | 'websocket' | 'socketio' | 'grpc';
 
 export interface KeyValuePair {
   key: string;

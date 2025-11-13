@@ -3,8 +3,7 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useCallback, useRef } from 'react';
 import { HttpAdapter } from '@/lib/adapters/http-adapter';
-import { SSEAdapter } from '@/lib/adapters/sse-adapter';
-import type { HttpRequest, SSEConfig, SSEMessage } from '@/types';
+import type { HttpRequest, SSEMessage } from '@/types';
 import {
   requestLoadingAtom,
   requestErrorAtom,
@@ -23,8 +22,8 @@ export function useRequest() {
   const addToHistory = useSetAtom(addResponseToHistoryAtom);
 
   const adapterRef = useRef<HttpAdapter | null>(null);
-  const sseAdapterRef = useRef<SSEAdapter | null>(null);
   const sseMessagesRef = useRef<SSEMessage[]>([]);
+  const isStreamingRef = useRef(false);
 
   // Get or create adapter instance
   const getAdapter = useCallback(() => {
@@ -48,11 +47,12 @@ export function useRequest() {
     [activeTabId, setTabs]
   );
 
-  // Disconnect any active SSE connection
-  const disconnectSSE = useCallback((clearResponse = false) => {
-    if (sseAdapterRef.current) {
-      sseAdapterRef.current.disconnect();
-      sseAdapterRef.current = null;
+  // Disconnect any active SSE stream
+  const disconnectStream = useCallback((clearResponse = false) => {
+    const adapter = adapterRef.current;
+    if (adapter && isStreamingRef.current) {
+      adapter.disconnectStream();
+      isStreamingRef.current = false;
     }
 
     // Only clear response if explicitly requested (when making new request)
@@ -65,8 +65,8 @@ export function useRequest() {
   // Execute HTTP request
   const sendRequest = useCallback(
     async (request: HttpRequest) => {
-      // Disconnect any existing SSE connection before making a new request
-      disconnectSSE(true); // Clear response when making new request
+      // Disconnect any existing stream before making a new request
+      disconnectStream(true); // Clear response when making new request
 
       // Set loading state in active tab
       updateActiveTab({ loading: true, error: null, response: null });
@@ -75,25 +75,13 @@ export function useRequest() {
         const adapter = getAdapter();
         const response = await adapter.execute(request);
 
-        // Check if this is an SSE endpoint
+        // If SSE detected, set up message listeners
         if (response.isSSE) {
-          // Automatically connect to SSE stream
-          const sseConfig: SSEConfig = {
-            id: request.id,
-            name: request.name,
-            protocol: 'sse',
-            url: request.url,
-            headers: request.headers,
-            createdAt: request.createdAt,
-            updatedAt: Date.now(),
-          };
+          isStreamingRef.current = true;
+          sseMessagesRef.current = response.sseMessages || [];
 
-          const sseAdapter = new SSEAdapter();
-          sseAdapterRef.current = sseAdapter;
-          sseMessagesRef.current = [];
-
-          // Set up message listener
-          sseAdapter.on('message', (message: unknown) => {
+          // Set up message listener for incoming SSE messages
+          adapter.on('message', (message: unknown) => {
             const sseMessage = message as SSEMessage;
             sseMessagesRef.current.push(sseMessage);
 
@@ -102,23 +90,18 @@ export function useRequest() {
               loading: false,
               response: {
                 ...response,
-                isSSE: true,
                 sseMessages: [...sseMessagesRef.current],
               },
               error: null,
             });
           });
 
-          // Connect to SSE endpoint
-          await sseAdapter.connect(sseConfig);
-
-          // Initial response with SSE indicator
+          // Set initial response with SSE indicator
           updateActiveTab({
             loading: false,
             response: {
               ...response,
-              isSSE: true,
-              sseMessages: [],
+              sseMessages: sseMessagesRef.current,
             },
             error: null,
           });
@@ -133,13 +116,15 @@ export function useRequest() {
         const error =
           err instanceof Error ? err : new Error('Unknown error occurred');
 
+        isStreamingRef.current = false;
+
         // Update active tab with error
         updateActiveTab({ loading: false, error, response: null });
 
         throw error;
       }
     },
-    [updateActiveTab, addToHistory, getAdapter, disconnectSSE]
+    [updateActiveTab, addToHistory, getAdapter, disconnectStream]
   );
 
   // Cancel ongoing request
@@ -158,12 +143,13 @@ export function useRequest() {
       adapter.dispose();
       adapterRef.current = null;
     }
-    disconnectSSE(true);
-  }, [disconnectSSE]);
+    isStreamingRef.current = false;
+    sseMessagesRef.current = [];
+  }, []);
 
-  // Check if SSE is currently connected
-  const isSSEConnected = () => {
-    return sseAdapterRef.current !== null;
+  // Check if currently streaming
+  const isStreaming = () => {
+    return isStreamingRef.current;
   };
 
   return {
@@ -172,7 +158,7 @@ export function useRequest() {
     cleanup,
     loading,
     error,
-    isSSEConnected,
-    disconnectSSE,
+    isStreaming,
+    disconnectStream,
   };
 }

@@ -1,14 +1,13 @@
-// Hook for managing connection-based protocols (SSE, WebSocket, Socket.IO)
+// Hook for managing connection-based protocols (WebSocket, Socket.IO)
 
 import { useAtom, useSetAtom } from 'jotai';
 import { useCallback, useRef, useEffect } from 'react';
-import type { SSEConfig, WebSocketConfig, SocketIOConfig } from '@/types';
+import type { WebSocketConfig, SocketIOConfig } from '@/types';
 import type { ConnectionAdapter, Connection } from '@/types/protocol';
 import { createAdapter } from '@/lib/adapters';
 import { connectionsAtom, addMessageAtom } from '@/stores/connection-atoms';
-import { SSEAdapter } from '@/lib/adapters/sse-adapter';
 
-type ConnectionConfig = SSEConfig | WebSocketConfig | SocketIOConfig;
+type ConnectionConfig = WebSocketConfig | SocketIOConfig;
 
 export function useConnection(connectionId: string, config: ConnectionConfig) {
   const [connections, setConnections] = useAtom(connectionsAtom);
@@ -87,12 +86,6 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
       const adapter = getAdapter();
       await adapter.connect(config);
 
-      // For SSE, register event listeners if needed
-      if (config.protocol === 'sse' && adapter instanceof SSEAdapter) {
-        // You can add custom event types here if needed
-        // adapter.listenToEvent('customEvent');
-      }
-
       // Update connection status
       setConnections((prev) => {
         const updated = new Map(prev);
@@ -142,26 +135,14 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
     }
   }, [connectionId, setConnections]);
 
-  // Send message (not applicable for SSE)
+  // Send message
   const sendMessage = useCallback(async (message: any) => {
     const adapter = adapterRef.current;
     if (!adapter) {
       throw new Error('Not connected');
     }
 
-    if (config.protocol === 'sse') {
-      throw new Error('Cannot send messages over SSE. SSE is unidirectional (server to client only).');
-    }
-
     await adapter.send(message);
-  }, [config.protocol]);
-
-  // Register SSE event listener
-  const listenToSSEEvent = useCallback((eventType: string) => {
-    const adapter = adapterRef.current;
-    if (adapter instanceof SSEAdapter) {
-      adapter.listenToEvent(eventType);
-    }
   }, []);
 
   // Cleanup on unmount
@@ -179,6 +160,5 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
     connect,
     disconnect,
     sendMessage,
-    listenToSSEEvent,
   };
 }

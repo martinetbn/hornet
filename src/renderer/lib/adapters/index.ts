@@ -4,7 +4,6 @@ import type { ProtocolType } from '@/types';
 import { HttpAdapter } from './http-adapter';
 import { WebSocketAdapter } from './websocket-adapter';
 import { SocketIOAdapter } from './socketio-adapter';
-import { SSEAdapter } from './sse-adapter';
 
 export function createAdapter(protocol: ProtocolType) {
   switch (protocol) {
@@ -14,8 +13,6 @@ export function createAdapter(protocol: ProtocolType) {
       return new WebSocketAdapter();
     case 'socketio':
       return new SocketIOAdapter();
-    case 'sse':
-      return new SSEAdapter();
     case 'grpc':
       throw new Error('gRPC adapter not yet implemented');
     default:
@@ -27,4 +24,3 @@ export * from './base';
 export * from './http-adapter';
 export * from './websocket-adapter';
 export * from './socketio-adapter';
-export * from './sse-adapter';

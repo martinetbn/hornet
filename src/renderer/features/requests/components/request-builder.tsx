@@ -36,11 +36,11 @@ interface RequestBuilderProps {
 }
 
 export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps) {
-  const { sendRequest, loading, isSSEConnected, disconnectSSE } = useRequest();
+  const { sendRequest, loading, isStreaming, disconnectStream } = useRequest();
   const response = useAtomValue(currentResponseAtom);
 
-  // Check if currently connected to SSE
-  const isSSE = response && 'isSSE' in response && response.isSSE && isSSEConnected();
+  // Check if currently streaming
+  const activelyStreaming = response && 'isSSE' in response && response.isSSE && isStreaming();
 
   const handleSend = async () => {
     try {
@@ -51,7 +51,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
   };
 
   const handleDisconnect = () => {
-    disconnectSSE();
+    disconnectStream();
   };
 
   const handleMethodChange = (method: HttpMethod) => {
@@ -111,7 +111,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
             className="flex-1 h-10"
           />
 
-          {isSSE ? (
+          {activelyStreaming ? (
             <Button onClick={handleDisconnect} variant="destructive" className="h-10">
               <XCircle className="size-4 mr-2" />
               Disconnect

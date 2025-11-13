@@ -36,8 +36,6 @@ function getProtocolIcon(request: Request) {
       return <Activity className={`${iconClass} text-orange-500`} />;
     case 'grpc':
       return <Zap className={`${iconClass} text-yellow-500`} />;
-    case 'sse':
-      return <Radio className={`${iconClass} text-green-500`} />;
     default:
       return <File className={iconClass} />;
   }

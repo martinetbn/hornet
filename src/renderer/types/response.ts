@@ -50,4 +50,4 @@ export interface SSEMessage {
   timestamp: number;
 }
 
-export type Response = HttpResponse | WebSocketMessage | SocketIOMessage | GrpcResponse | SSEMessage;
+export type Response = HttpResponse | WebSocketMessage | SocketIOMessage | GrpcResponse;

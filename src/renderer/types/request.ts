@@ -51,11 +51,4 @@ export interface GrpcRequest extends BaseRequest {
   metadata?: Record<string, string>;
 }
 
-export interface SSEConfig extends BaseRequest {
-  protocol: 'sse';
-  url: string;
-  headers?: KeyValuePair[];
-  withCredentials?: boolean;
-}
-
-export type Request = HttpRequest | WebSocketConfig | SocketIOConfig | GrpcRequest | SSEConfig;
+export type Request = HttpRequest | WebSocketConfig | SocketIOConfig | GrpcRequest;

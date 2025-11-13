@@ -18,7 +18,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder, SSEBuilder } from '@/features/requests/components';
+import { RequestBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import {
   useCollection,
@@ -29,7 +29,7 @@ import {
 import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, SSEConfig, Request, CollectionItem, Tab } from '@/types';
+import type { HttpRequest, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
 
 function App() {
@@ -187,24 +187,17 @@ function App() {
               {activeTab && (
                 <>
                   {activeTab.request.protocol === 'http' && (
-                    <RequestBuilder
-                      request={activeTab.request as HttpRequest}
-                      onRequestChange={(updatedRequest: HttpRequest) => {
-                        // Update the tab with the modified request and mark as dirty
-                        updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
-                      }}
-                    />
+                    <>
+                      <RequestBuilder
+                        request={activeTab.request as HttpRequest}
+                        onRequestChange={(updatedRequest: HttpRequest) => {
+                          // Update the tab with the modified request and mark as dirty
+                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                        }}
+                      />
+                      <ResponseViewer />
+                    </>
                   )}
-                  {activeTab.request.protocol === 'sse' && (
-                    <SSEBuilder
-                      request={activeTab.request as SSEConfig}
-                      onRequestChange={(updatedRequest: SSEConfig) => {
-                        // Update the tab with the modified request and mark as dirty
-                        updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
-                      }}
-                    />
-                  )}
-                  {activeTab.request.protocol === 'http' && <ResponseViewer />}
                 </>
               )}
             </div>
