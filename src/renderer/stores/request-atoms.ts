@@ -2,15 +2,49 @@
 
 import { atom } from 'jotai';
 import type { HttpRequest } from '@/types';
+import { tabsAtom, activeTabIdAtom } from './collection-atoms';
 
-// Current request being edited/viewed
-export const currentRequestAtom = atom<HttpRequest | null>(null);
+/**
+ * Derived atom: Gets the current request from the active tab
+ * This ensures each tab has its own isolated request state
+ */
+export const currentRequestAtom = atom<HttpRequest | null>((get) => {
+  const tabs = get(tabsAtom);
+  const activeTabId = get(activeTabIdAtom);
 
-// Request loading state
-export const requestLoadingAtom = atom(false);
+  if (!activeTabId) return null;
 
-// Request error state
-export const requestErrorAtom = atom<Error | null>(null);
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  return activeTab?.request ?? null;
+});
+
+/**
+ * Derived atom: Gets loading state from the active tab
+ * This ensures each tab has its own isolated loading state
+ */
+export const requestLoadingAtom = atom<boolean>((get) => {
+  const tabs = get(tabsAtom);
+  const activeTabId = get(activeTabIdAtom);
+
+  if (!activeTabId) return false;
+
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  return activeTab?.loading ?? false;
+});
+
+/**
+ * Derived atom: Gets error state from the active tab
+ * This ensures each tab has its own isolated error state
+ */
+export const requestErrorAtom = atom<Error | null>((get) => {
+  const tabs = get(tabsAtom);
+  const activeTabId = get(activeTabIdAtom);
+
+  if (!activeTabId) return null;
+
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  return activeTab?.error ?? null;
+});
 
 // Derived: Is request valid?
 export const isRequestValidAtom = atom((get) => {

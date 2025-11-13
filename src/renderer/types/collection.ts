@@ -1,6 +1,7 @@
 // Collection type definitions
 
 import type { Request } from './request';
+import type { HttpResponse } from './response';
 
 export interface Collection {
   id: string;
@@ -27,4 +28,8 @@ export interface Tab<T = Request> {
   path: string[];
   request: T;
   isDirty?: boolean;
+  // Per-tab response state
+  response?: HttpResponse | null;
+  loading?: boolean;
+  error?: Error | null;
 }
