@@ -12,6 +12,7 @@ interface KeyValueEditorProps {
   onItemsChange: (items: KeyValuePair[]) => void;
   keyPlaceholder?: string;
   valuePlaceholder?: string;
+  disabled?: boolean;
 }
 
 export function KeyValueEditor({
@@ -20,6 +21,7 @@ export function KeyValueEditor({
   onItemsChange,
   keyPlaceholder = 'Key',
   valuePlaceholder = 'Value',
+  disabled = false,
 }: KeyValueEditorProps) {
   const handleChange = (index: number, field: 'key' | 'value', value: string) => {
     const newItems = [...items];
@@ -76,6 +78,7 @@ export function KeyValueEditor({
                 checked={item.enabled !== false}
                 onCheckedChange={() => handleToggle(index)}
                 className='mt-4'
+                disabled={disabled}
               />
               <div className='flex flex-col items-start gap-1 w-full'>
                 <span className='text-xs font-medium text-muted-foreground'>Key</span>
@@ -83,7 +86,7 @@ export function KeyValueEditor({
                   value={item.key}
                   onChange={(e) => handleChange(index, 'key', e.target.value)}
                   placeholder={keyPlaceholder}
-                  disabled={item.enabled === false}
+                  disabled={disabled || item.enabled === false}
                   className='w-full'
                 />
               </div>
@@ -93,7 +96,7 @@ export function KeyValueEditor({
                   value={item.value}
                   onChange={(e) => handleChange(index, 'value', e.target.value)}
                   placeholder={valuePlaceholder}
-                  disabled={item.enabled === false}
+                  disabled={disabled || item.enabled === false}
                   className='w-full'
                 />
               </div>
@@ -103,7 +106,7 @@ export function KeyValueEditor({
                 onClick={() => handleRemove(index)}
                 className="size-8 mt-4"
                 style={{ visibility: shouldShowDelete ? 'visible' : 'hidden' }}
-                disabled={!shouldShowDelete}
+                disabled={disabled || !shouldShowDelete}
               >
                 <X className="size-4" />
               </Button>

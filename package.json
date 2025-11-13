@@ -22,6 +22,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bun": "latest",
+    "@types/node": "^24.10.1",
+    "@types/uuid": "^11.0.0",
     "electron": "^39.1.1",
     "electron-builder": "^26.0.12",
     "postcss": "^8.5.6",

@@ -35,7 +35,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
       });
 
       adapterRef.current.on('message', (message) => {
-        addMessage({ connectionId, message });
+        addMessage({ connectionId, message: message as any });
       });
 
       adapterRef.current.on('error', (error) => {

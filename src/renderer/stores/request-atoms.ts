@@ -1,14 +1,14 @@
 // Request-related state atoms
 
 import { atom } from 'jotai';
-import type { HttpRequest } from '@/types';
+import type { Request } from '@/types';
 import { tabsAtom, activeTabIdAtom } from './collection-atoms';
 
 /**
  * Derived atom: Gets the current request from the active tab
  * This ensures each tab has its own isolated request state
  */
-export const currentRequestAtom = atom<HttpRequest | null>((get) => {
+export const currentRequestAtom = atom<Request | null>((get) => {
   const tabs = get(tabsAtom);
   const activeTabId = get(activeTabIdAtom);
 
@@ -51,6 +51,11 @@ export const isRequestValidAtom = atom((get) => {
   const request = get(currentRequestAtom);
   if (!request) return false;
 
-  // Basic validation - must have URL and method
-  return request.url.length > 0 && request.method !== undefined;
+  // Basic validation - must have URL
+  if (!request.url || request.url.length === 0) return false;
+
+  // For HTTP requests, must have method
+  if (request.protocol === 'http' && !('method' in request)) return false;
+
+  return true;
 });

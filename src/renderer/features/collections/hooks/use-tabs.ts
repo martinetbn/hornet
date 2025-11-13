@@ -2,7 +2,8 @@
 
 import { useAtom } from 'jotai';
 import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
-import type { Tab, HttpRequest } from '@/stores/collection-atoms';
+import type { Tab } from '@/stores/collection-atoms';
+import type { Request } from '@/types';
 import { useCallback } from 'react';
 
 export function useTabs() {
@@ -13,7 +14,7 @@ export function useTabs() {
 
   // Open request in a new tab or switch to existing tab
   const openTab = useCallback(
-    (request: HttpRequest, path: string[]): void => {
+    (request: Request, path: string[]): void => {
       const existingTab = tabs.find((tab) => tab.id === request.id);
 
       if (existingTab) {
@@ -65,7 +66,7 @@ export function useTabs() {
 
   // Create new request tab
   const createNewTab = useCallback(
-    (request: HttpRequest): void => {
+    (request: Request): void => {
       const newTab: Tab = {
         id: request.id,
         name: request.name,
