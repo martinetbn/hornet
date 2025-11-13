@@ -72,7 +72,7 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
         {/* Request URL Section */}
         <div className="flex gap-2">
           <Select value={request.method} onValueChange={handleMethodChange}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32 h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -98,10 +98,10 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
             value={request.url}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="Enter request URL (e.g., https://api.example.com/users)"
-            className="flex-1"
+            className="flex-1 h-10"
           />
 
-          <Button onClick={handleSend} disabled={loading || !request.url}>
+          <Button onClick={handleSend} disabled={loading || !request.url} className="h-10">
             {loading ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
