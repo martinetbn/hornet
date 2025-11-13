@@ -19,8 +19,29 @@ import {
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
-import { Folder, File, ChevronRight } from 'lucide-react';
-import type { CollectionItem, CollectionFolder, HttpRequest } from '@/stores/collection-atoms';
+import { Folder, File, ChevronRight, Globe, Radio, Activity, Zap } from 'lucide-react';
+import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
+import type { Request } from '@/types/request';
+
+// Helper function to get protocol-specific icon
+function getProtocolIcon(request: Request) {
+  const iconClass = "shrink-0";
+
+  switch (request.protocol) {
+    case 'http':
+      return <Globe className={`${iconClass} text-blue-500`} />;
+    case 'websocket':
+      return <Radio className={`${iconClass} text-purple-500`} />;
+    case 'socketio':
+      return <Activity className={`${iconClass} text-orange-500`} />;
+    case 'grpc':
+      return <Zap className={`${iconClass} text-yellow-500`} />;
+    case 'sse':
+      return <Radio className={`${iconClass} text-green-500`} />;
+    default:
+      return <File className={iconClass} />;
+  }
+}
 
 interface CollectionTreeItemProps {
   item: CollectionItem;
@@ -75,7 +96,7 @@ export function CollectionTreeItem({
 
   // Render request item
   if (!isFolder) {
-    const request = item as HttpRequest;
+    const request = item as Request;
     return (
       <div className="relative">
         {isOver && (
@@ -84,7 +105,7 @@ export function CollectionTreeItem({
         <div ref={setDragRef} {...(isRenaming ? {} : { ...attributes, ...listeners })}>
           {isRenaming ? (
             <SidebarMenuButton className="cursor-text">
-              <File className="shrink-0" />
+              {getProtocolIcon(request)}
               <Input
                 ref={inputRef}
                 value={renamingValue}
@@ -111,7 +132,7 @@ export function CollectionTreeItem({
                   onClick={() => onSelect?.(request, currentPath)}
                   onDoubleClick={() => onRename?.(request)}
                 >
-                  <File className="shrink-0" />
+                  {getProtocolIcon(request)}
                   <span className="truncate">{request.name}</span>
                 </SidebarMenuButton>
               </ContextMenuTrigger>
