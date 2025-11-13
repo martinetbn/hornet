@@ -45,10 +45,14 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 
       // Use fetch for initial request to check headers without waiting for full response
       const abortController = new AbortController();
+
+      // GET and HEAD methods cannot have a body
+      const canHaveBody = request.method !== 'GET' && request.method !== 'HEAD';
+
       const fetchResponse = await fetch(url.toString(), {
         method: request.method,
         headers,
-        body: request.body?.content ? request.body.content : undefined,
+        ...(canHaveBody && request.body?.content ? { body: request.body.content } : {}),
         signal: abortController.signal,
       });
 
@@ -84,7 +88,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         url: request.url,
         headers,
         params,
-        data: request.body?.content,
+        ...(canHaveBody && request.body?.content ? { data: request.body.content } : {}),
         cancelToken: this.cancelToken.token,
         timeout: request.timeout,
       };
