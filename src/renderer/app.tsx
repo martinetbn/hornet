@@ -233,7 +233,7 @@ function App() {
 
       {/* Protocol Selection Dialog */}
       <Dialog open={protocolDialogOpen} onOpenChange={setProtocolDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Select Protocol</DialogTitle>
             <DialogDescription>
@@ -243,12 +243,12 @@ function App() {
           <div className="grid gap-3 py-4">
             <Button
               variant="outline"
-              className="h-auto py-4 justify-start"
+              className="h-auto w-full py-4 justify-start whitespace-normal"
               onClick={() => handleProtocolSelect('http')}
             >
-              <div className="text-left">
+              <div className="text-left w-full">
                 <div className="font-semibold">HTTP / REST</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground break-words">
                   Traditional request/response HTTP requests (auto-detects SSE)
                 </div>
               </div>
