@@ -4,6 +4,13 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import {
   ResizablePanelGroup,
@@ -11,7 +18,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder } from '@/features/requests/components';
+import { RequestBuilder, SSEBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import {
   useCollection,
@@ -22,12 +29,13 @@ import {
 import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, CollectionItem, Tab } from '@/stores/collection-atoms';
+import type { HttpRequest, SSEConfig, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
 
 function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
 
@@ -72,14 +80,20 @@ function App() {
   });
 
   const handleFileSelect = (request: unknown, path: string[]) => {
-    openTab(request as HttpRequest, path);
+    openTab(request as Request, path);
   };
 
   const handleNewRequest = () => {
+    setProtocolDialogOpen(true);
+  };
+
+  const handleProtocolSelect = (protocol: 'http') => {
     const now = Date.now();
+    const id = generateId();
+
     const newRequest: HttpRequest = {
-      id: generateId(),
-      name: 'New Request',
+      id,
+      name: 'New HTTP Request',
       protocol: 'http',
       method: 'GET',
       url: 'https://api.example.com',
@@ -87,6 +101,29 @@ function App() {
       updatedAt: now,
     };
     createNewTab(newRequest);
+
+    setProtocolDialogOpen(false);
+  };
+
+  const handleUpgradeToSSE = () => {
+    if (!activeTab || activeTab.request.protocol !== 'http') return;
+
+    const httpRequest = activeTab.request as HttpRequest;
+    const now = Date.now();
+
+    // Convert HTTP request to SSE config
+    const sseConfig: SSEConfig = {
+      id: httpRequest.id,
+      name: httpRequest.name.replace('HTTP Request', 'SSE Connection'),
+      protocol: 'sse',
+      url: httpRequest.url,
+      headers: httpRequest.headers,
+      createdAt: httpRequest.createdAt,
+      updatedAt: now,
+    };
+
+    // Update the tab with SSE config
+    updateTab(activeTab.id, { request: sseConfig, response: null });
   };
 
   const handleCreateFolder = () => {
@@ -170,14 +207,27 @@ function App() {
 
               {activeTab && (
                 <>
-                  <RequestBuilder
-                    request={activeTab.request as HttpRequest}
-                    onRequestChange={(updatedRequest: HttpRequest) => {
-                      // Update the tab with the modified request and mark as dirty
-                      updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
-                    }}
-                  />
-                  <ResponseViewer />
+                  {activeTab.request.protocol === 'http' && (
+                    <RequestBuilder
+                      request={activeTab.request as HttpRequest}
+                      onRequestChange={(updatedRequest: HttpRequest) => {
+                        // Update the tab with the modified request and mark as dirty
+                        updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                      }}
+                    />
+                  )}
+                  {activeTab.request.protocol === 'sse' && (
+                    <SSEBuilder
+                      request={activeTab.request as SSEConfig}
+                      onRequestChange={(updatedRequest: SSEConfig) => {
+                        // Update the tab with the modified request and mark as dirty
+                        updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                      }}
+                    />
+                  )}
+                  {activeTab.request.protocol === 'http' && (
+                    <ResponseViewer onUpgradeToSSE={handleUpgradeToSSE} />
+                  )}
                 </>
               )}
             </div>
@@ -203,6 +253,33 @@ function App() {
         onFolderNameChange={setNewFolderName}
         onCreate={handleCreateFolder}
       />
+
+      {/* Protocol Selection Dialog */}
+      <Dialog open={protocolDialogOpen} onOpenChange={setProtocolDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Protocol</DialogTitle>
+            <DialogDescription>
+              Choose the protocol type for your new request
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <Button
+              variant="outline"
+              className="h-auto py-4 justify-start"
+              onClick={() => handleProtocolSelect('http')}
+            >
+              <div className="text-left">
+                <div className="font-semibold">HTTP / REST</div>
+                <div className="text-sm text-muted-foreground">
+                  Traditional request/response HTTP requests (auto-detects SSE)
+                </div>
+              </div>
+            </Button>
+            {/* WebSocket, Socket.IO, and other protocols will be added here */}
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

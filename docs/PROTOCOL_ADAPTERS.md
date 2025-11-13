@@ -2,7 +2,7 @@
 
 ## Overview
 
-Protocol adapters abstract the implementation details of different API protocols (HTTP, WebSocket, Socket.IO, gRPC) behind a common interface. This allows the application to work with any protocol without knowing implementation specifics.
+Protocol adapters abstract the implementation details of different API protocols (HTTP, WebSocket, Socket.IO, SSE, gRPC) behind a common interface. This allows the application to work with any protocol without knowing implementation specifics.
 
 ## Adapter Pattern
 
@@ -385,6 +385,169 @@ export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, Socket
 }
 ```
 
+## SSE Adapter
+
+### Implementation
+
+```typescript
+// src/renderer/lib/adapters/sse-adapter.ts
+
+import type { SSEConfig, SSEMessage, SSEEvent } from '@/types';
+import type { ConnectionAdapter, ConnectionStatus } from './base';
+
+export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
+  private eventSource?: EventSource;
+  private status: ConnectionStatus = 'disconnected';
+  private eventListeners = new Map<string, Set<Function>>();
+  private registeredEventTypes = new Set<string>();
+
+  async connect(config: SSEConfig): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.status = 'connecting';
+      this.emit('status', this.status);
+
+      try {
+        const url = this.buildUrl(config);
+        this.eventSource = new EventSource(url, {
+          withCredentials: config.withCredentials ?? false,
+        });
+
+        this.eventSource.onopen = () => {
+          this.status = 'connected';
+          this.emit('status', this.status);
+          this.emit('connected');
+          resolve();
+        };
+
+        this.eventSource.onmessage = (event) => {
+          this.handleMessage('message', event);
+        };
+
+        this.eventSource.onerror = (error) => {
+          const wasConnected = this.status === 'connected';
+          this.status = 'error';
+          this.emit('status', this.status);
+          this.emit('error', error);
+
+          if (!wasConnected) {
+            reject(new Error('Failed to connect to SSE endpoint'));
+          }
+        };
+      } catch (error) {
+        this.status = 'error';
+        this.emit('status', this.status);
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * Register a listener for a specific SSE event type
+   */
+  public listenToEvent(eventType: string): void {
+    if (!this.eventSource || this.registeredEventTypes.has(eventType)) {
+      return;
+    }
+
+    this.registeredEventTypes.add(eventType);
+    this.eventSource.addEventListener(eventType, (event) => {
+      this.handleMessage(eventType, event as MessageEvent);
+    });
+  }
+
+  private handleMessage(eventType: string, event: MessageEvent): void {
+    const sseEvent: SSEEvent = {
+      id: event.lastEventId || crypto.randomUUID(),
+      event: eventType,
+      data: event.data,
+      timestamp: Date.now(),
+    };
+
+    const message: SSEMessage = {
+      id: crypto.randomUUID(),
+      type: 'event',
+      event: sseEvent,
+      timestamp: Date.now(),
+    };
+
+    this.emit('message', message);
+  }
+
+  async send(_message: never): Promise<void> {
+    throw new Error('SSE is unidirectional. Use HTTP requests to send data to the server.');
+  }
+
+  async disconnect(): Promise<void> {
+    if (!this.eventSource) return;
+
+    this.status = 'disconnecting';
+    this.emit('status', this.status);
+
+    this.eventSource.close();
+    this.eventSource = undefined;
+    this.registeredEventTypes.clear();
+
+    this.status = 'disconnected';
+    this.emit('status', this.status);
+    this.emit('disconnected');
+  }
+
+  on(event: string, callback: (data: unknown) => void): void {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, new Set());
+    }
+    this.eventListeners.get(event)!.add(callback);
+  }
+
+  off(event: string, callback: (data: unknown) => void): void {
+    this.eventListeners.get(event)?.delete(callback);
+  }
+
+  getStatus(): ConnectionStatus {
+    return this.status;
+  }
+
+  private emit(event: string, data?: unknown): void {
+    this.eventListeners.get(event)?.forEach((callback) => callback(data));
+  }
+}
+```
+
+### Usage
+
+```typescript
+const adapter = new SSEAdapter();
+
+adapter.on('message', (message) => {
+  console.log('Received:', message);
+});
+
+await adapter.connect({
+  url: 'https://api.example.com/events',
+  withCredentials: false,
+});
+
+// Listen for custom event types
+adapter.listenToEvent('notification');
+adapter.listenToEvent('update');
+
+await adapter.disconnect();
+```
+
+### Key Features
+
+- **Automatic Reconnection**: Browser's EventSource API handles reconnection automatically
+- **Custom Events**: Support for registering listeners for specific SSE event types
+- **Unidirectional**: Server-to-client only (cannot send messages)
+- **Status Management**: Tracks connection status (connecting, connected, error, disconnected)
+
+### Limitations
+
+1. Only supports GET requests (EventSource limitation)
+2. Custom headers are sent as query parameters
+3. Cannot send messages to server (unidirectional only)
+4. Browser connection limits apply (typically 6 per domain)
+
 ## gRPC Adapter
 
 ### Implementation
@@ -512,6 +675,7 @@ import { ProtocolType } from '@/types';
 import { HttpAdapter } from './http-adapter';
 import { WebSocketAdapter } from './websocket-adapter';
 import { SocketIOAdapter } from './socketio-adapter';
+import { SSEAdapter } from './sse-adapter';
 import { GrpcAdapter } from './grpc-adapter';
 
 export function createAdapter(protocol: ProtocolType) {
@@ -522,6 +686,8 @@ export function createAdapter(protocol: ProtocolType) {
       return new WebSocketAdapter();
     case 'socketio':
       return new SocketIOAdapter();
+    case 'sse':
+      return new SSEAdapter();
     case 'grpc':
       return new GrpcAdapter();
     default:
@@ -533,6 +699,7 @@ export * from './base';
 export * from './http-adapter';
 export * from './websocket-adapter';
 export * from './socketio-adapter';
+export * from './sse-adapter';
 export * from './grpc-adapter';
 ```
 
@@ -607,6 +774,94 @@ describe('WebSocketAdapter', () => {
 
     expect(messages).toHaveLength(2); // sent + received
     expect(messages[1].type).toBe('received');
+  });
+});
+```
+
+### SSE Adapter Tests
+
+```typescript
+describe('SSEAdapter', () => {
+  it('should connect and disconnect', async () => {
+    const adapter = new SSEAdapter();
+
+    await adapter.connect({
+      url: 'https://api.example.com/events',
+      protocol: 'sse',
+      id: '1',
+      name: 'Test SSE',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    expect(adapter.getStatus()).toBe('connected');
+
+    await adapter.disconnect();
+    expect(adapter.getStatus()).toBe('disconnected');
+  });
+
+  it('should receive messages', async () => {
+    const adapter = new SSEAdapter();
+    const messages: any[] = [];
+
+    adapter.on('message', (msg) => messages.push(msg));
+
+    await adapter.connect({
+      url: 'https://api.example.com/events',
+      protocol: 'sse',
+      id: '1',
+      name: 'Test SSE',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Wait for events
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    expect(messages.length).toBeGreaterThan(0);
+    expect(messages[0].type).toBe('event');
+  });
+
+  it('should handle custom event types', async () => {
+    const adapter = new SSEAdapter();
+    const messages: any[] = [];
+
+    adapter.on('message', (msg) => messages.push(msg));
+
+    await adapter.connect({
+      url: 'https://api.example.com/events',
+      protocol: 'sse',
+      id: '1',
+      name: 'Test SSE',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    adapter.listenToEvent('notification');
+    adapter.listenToEvent('update');
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const customEvents = messages.filter(m =>
+      m.event?.event === 'notification' || m.event?.event === 'update'
+    );
+    expect(customEvents.length).toBeGreaterThan(0);
+  });
+
+  it('should throw error on send attempt', async () => {
+    const adapter = new SSEAdapter();
+
+    await adapter.connect({
+      url: 'https://api.example.com/events',
+      protocol: 'sse',
+      id: '1',
+      name: 'Test SSE',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await expect(adapter.send(null as never)).rejects.toThrow(
+      'SSE is unidirectional'
+    );
   });
 });
 ```

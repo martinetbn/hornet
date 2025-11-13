@@ -16,14 +16,19 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { currentResponseAtom } from '@/stores/response-atoms';
 import { requestLoadingAtom, requestErrorAtom } from '@/stores/request-atoms';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Radio } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
 
-export function ResponseViewer() {
+interface ResponseViewerProps {
+  onUpgradeToSSE?: () => void;
+}
+
+export function ResponseViewer({ onUpgradeToSSE }: ResponseViewerProps = {}) {
   const response = useAtomValue(currentResponseAtom);
   const loading = useAtomValue(requestLoadingAtom);
   const error = useAtomValue(requestErrorAtom);
@@ -157,6 +162,27 @@ export function ResponseViewer() {
                 )}
               </div>
             </div>
+
+            {/* SSE Upgrade Banner */}
+            {response && 'isSSE' in response && response.isSSE && onUpgradeToSSE && (
+              <div className="mt-4 p-4 rounded-lg border-2 border-blue-500 bg-blue-500/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Radio className="size-5 text-blue-500" />
+                    <div>
+                      <p className="font-semibold text-sm">Server-Sent Events Detected</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        This endpoint supports real-time event streaming
+                      </p>
+                    </div>
+                  </div>
+                  <Button onClick={onUpgradeToSSE} size="sm">
+                    <Radio className="size-4 mr-2" />
+                    Connect to Stream
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>

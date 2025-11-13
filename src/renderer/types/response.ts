@@ -8,6 +8,7 @@ export interface HttpResponse {
   duration: number;
   size: number;
   timestamp: number;
+  isSSE?: boolean; // Indicates if this is an SSE endpoint
 }
 
 export interface WebSocketMessage {
@@ -32,4 +33,20 @@ export interface GrpcResponse {
   timestamp: number;
 }
 
-export type Response = HttpResponse | WebSocketMessage | SocketIOMessage | GrpcResponse;
+export interface SSEEvent {
+  id: string;
+  event: string;
+  data: string;
+  timestamp: number;
+  retry?: number;
+}
+
+export interface SSEMessage {
+  id: string;
+  type: 'event' | 'error' | 'connected' | 'disconnected';
+  event?: SSEEvent;
+  error?: string;
+  timestamp: number;
+}
+
+export type Response = HttpResponse | WebSocketMessage | SocketIOMessage | GrpcResponse | SSEMessage;
