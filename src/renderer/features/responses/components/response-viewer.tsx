@@ -62,6 +62,17 @@ export function ResponseViewer() {
       .join('\n');
   };
 
+  // Format SSE event data (try to parse and format JSON)
+  const formatSSEEventData = (data: string): string => {
+    try {
+      const parsed = JSON.parse(data);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      // Not valid JSON, return as-is
+      return data;
+    }
+  };
+
   // Get status badge variant
   const getStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
     if (status >= 200 && status < 300) return 'default';
@@ -116,7 +127,7 @@ export function ResponseViewer() {
                         <p className="text-sm mt-1">Waiting for events...</p>
                       </div>
                     ) : (
-                      response.sseMessages.map((msg) => (
+                      response.sseMessages.slice().reverse().map((msg) => (
                         <div
                           key={msg.id}
                           className="border-l-4 border-blue-500 bg-secondary/50 p-3 rounded"
@@ -143,8 +154,17 @@ export function ResponseViewer() {
                                   <span className="font-semibold">ID:</span> {msg.event.id}
                                 </div>
                               )}
-                              <div className="text-sm font-mono bg-background p-2 rounded overflow-x-auto">
-                                {msg.event.data}
+                              <div className={wrapperClass}>
+                                <CodeMirror
+                                  value={formatSSEEventData(msg.event.data)}
+                                  extensions={[json(), customTheme, customHighlighting]}
+                                  height="auto"
+                                  maxHeight="300px"
+                                  basicSetup={basicSetup}
+                                  style={editorStyle}
+                                  editable={false}
+                                  readOnly={true}
+                                />
                               </div>
                             </div>
                           )}

@@ -22,11 +22,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, XCircle } from 'lucide-react';
 import { useRequest } from '../hooks';
 import type { HttpRequest, HttpMethod } from '@/types';
 import { BodyEditor } from './body-editor';
 import { KeyValueEditor } from './key-value-editor';
+import { useAtomValue } from 'jotai';
+import { currentResponseAtom } from '@/stores/response-atoms';
 
 interface RequestBuilderProps {
   request: HttpRequest;
@@ -34,7 +36,11 @@ interface RequestBuilderProps {
 }
 
 export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps) {
-  const { sendRequest, loading } = useRequest();
+  const { sendRequest, loading, isSSEConnected, disconnectSSE } = useRequest();
+  const response = useAtomValue(currentResponseAtom);
+
+  // Check if currently connected to SSE
+  const isSSE = response && 'isSSE' in response && response.isSSE && isSSEConnected();
 
   const handleSend = async () => {
     try {
@@ -42,6 +48,10 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
     } catch (error) {
       console.error('Failed to send request:', error);
     }
+  };
+
+  const handleDisconnect = () => {
+    disconnectSSE();
   };
 
   const handleMethodChange = (method: HttpMethod) => {
@@ -101,19 +111,26 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
             className="flex-1 h-10"
           />
 
-          <Button onClick={handleSend} disabled={loading || !request.url} className="h-10">
-            {loading ? (
-              <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
-                Sending
-              </>
-            ) : (
-              <>
-                <Send className="size-4 mr-2" />
-                Send
-              </>
-            )}
-          </Button>
+          {isSSE ? (
+            <Button onClick={handleDisconnect} variant="destructive" className="h-10">
+              <XCircle className="size-4 mr-2" />
+              Disconnect
+            </Button>
+          ) : (
+            <Button onClick={handleSend} disabled={loading || !request.url} className="h-10">
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Sending
+                </>
+              ) : (
+                <>
+                  <Send className="size-4 mr-2" />
+                  Send
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Request Configuration Tabs */}

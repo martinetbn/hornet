@@ -34,15 +34,6 @@ export function useRequest() {
     return adapterRef.current;
   }, []);
 
-  // Disconnect any active SSE connection
-  const disconnectSSE = useCallback(() => {
-    if (sseAdapterRef.current) {
-      sseAdapterRef.current.disconnect();
-      sseAdapterRef.current = null;
-    }
-    sseMessagesRef.current = [];
-  }, []);
-
   // Update tab state helper
   const updateActiveTab = useCallback(
     (updates: { loading?: boolean; error?: Error | null; response?: any }) => {
@@ -57,11 +48,25 @@ export function useRequest() {
     [activeTabId, setTabs]
   );
 
+  // Disconnect any active SSE connection
+  const disconnectSSE = useCallback((clearResponse = false) => {
+    if (sseAdapterRef.current) {
+      sseAdapterRef.current.disconnect();
+      sseAdapterRef.current = null;
+    }
+
+    // Only clear response if explicitly requested (when making new request)
+    if (clearResponse) {
+      sseMessagesRef.current = [];
+      updateActiveTab({ response: null });
+    }
+  }, [updateActiveTab]);
+
   // Execute HTTP request
   const sendRequest = useCallback(
     async (request: HttpRequest) => {
       // Disconnect any existing SSE connection before making a new request
-      disconnectSSE();
+      disconnectSSE(true); // Clear response when making new request
 
       // Set loading state in active tab
       updateActiveTab({ loading: true, error: null, response: null });
@@ -153,8 +158,13 @@ export function useRequest() {
       adapter.dispose();
       adapterRef.current = null;
     }
-    disconnectSSE();
+    disconnectSSE(true);
   }, [disconnectSSE]);
+
+  // Check if SSE is currently connected
+  const isSSEConnected = () => {
+    return sseAdapterRef.current !== null;
+  };
 
   return {
     sendRequest,
@@ -162,5 +172,7 @@ export function useRequest() {
     cleanup,
     loading,
     error,
+    isSSEConnected,
+    disconnectSSE,
   };
 }
