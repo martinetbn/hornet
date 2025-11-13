@@ -9,6 +9,7 @@ export interface HttpResponse {
   size: number;
   timestamp: number;
   isSSE?: boolean; // Indicates if this is an SSE endpoint
+  sseMessages?: SSEMessage[]; // SSE messages if connected to stream
 }
 
 export interface WebSocketMessage {

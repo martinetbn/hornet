@@ -105,27 +105,6 @@ function App() {
     setProtocolDialogOpen(false);
   };
 
-  const handleUpgradeToSSE = () => {
-    if (!activeTab || activeTab.request.protocol !== 'http') return;
-
-    const httpRequest = activeTab.request as HttpRequest;
-    const now = Date.now();
-
-    // Convert HTTP request to SSE config
-    const sseConfig: SSEConfig = {
-      id: httpRequest.id,
-      name: httpRequest.name.replace('HTTP Request', 'SSE Connection'),
-      protocol: 'sse',
-      url: httpRequest.url,
-      headers: httpRequest.headers,
-      createdAt: httpRequest.createdAt,
-      updatedAt: now,
-    };
-
-    // Update the tab with SSE config
-    updateTab(activeTab.id, { request: sseConfig, response: null });
-  };
-
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
       createFolder(newFolderName.trim());
@@ -225,9 +204,7 @@ function App() {
                       }}
                     />
                   )}
-                  {activeTab.request.protocol === 'http' && (
-                    <ResponseViewer onUpgradeToSSE={handleUpgradeToSSE} />
-                  )}
+                  {activeTab.request.protocol === 'http' && <ResponseViewer />}
                 </>
               )}
             </div>

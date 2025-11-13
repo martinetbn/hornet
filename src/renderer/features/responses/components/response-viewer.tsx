@@ -24,11 +24,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
 
-interface ResponseViewerProps {
-  onUpgradeToSSE?: () => void;
-}
-
-export function ResponseViewer({ onUpgradeToSSE }: ResponseViewerProps = {}) {
+export function ResponseViewer() {
   const response = useAtomValue(currentResponseAtom);
   const loading = useAtomValue(requestLoadingAtom);
   const error = useAtomValue(requestErrorAtom);
@@ -110,17 +106,79 @@ export function ResponseViewer({ onUpgradeToSSE }: ResponseViewerProps = {}) {
               </TabsList>
 
               <TabsContent value="body">
-                <div className={wrapperClass}>
-                  <CodeMirror
-                    value={response ? formatData(response.data) : 'Send a request to see the response here...'}
-                    extensions={[json(), customTheme, customHighlighting]}
-                    height="300px"
-                    basicSetup={basicSetup}
-                    style={editorStyle}
-                    editable={false}
-                    readOnly={true}
-                  />
-                </div>
+                {response && 'isSSE' in response && response.isSSE && response.sseMessages ? (
+                  // SSE Messages View
+                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto space-y-2">
+                    {response.sseMessages.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <Radio className="size-8 mx-auto mb-2 text-blue-500" />
+                        <p>Connected to SSE stream</p>
+                        <p className="text-sm mt-1">Waiting for events...</p>
+                      </div>
+                    ) : (
+                      response.sseMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className="border-l-4 border-blue-500 bg-secondary/50 p-3 rounded"
+                        >
+                          <div className="flex items-start justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {msg.type}
+                              </Badge>
+                              {msg.event && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {msg.event.event}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(msg.timestamp).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          {msg.type === 'event' && msg.event && (
+                            <div className="mt-2 space-y-1">
+                              {msg.event.id && (
+                                <div className="text-xs">
+                                  <span className="font-semibold">ID:</span> {msg.event.id}
+                                </div>
+                              )}
+                              <div className="text-sm font-mono bg-background p-2 rounded overflow-x-auto">
+                                {msg.event.data}
+                              </div>
+                            </div>
+                          )}
+                          {msg.type === 'error' && msg.error && (
+                            <div className="mt-2 text-sm text-red-500">{msg.error}</div>
+                          )}
+                          {msg.type === 'connected' && (
+                            <div className="mt-2 text-sm text-green-500">
+                              Successfully connected to SSE endpoint
+                            </div>
+                          )}
+                          {msg.type === 'disconnected' && (
+                            <div className="mt-2 text-sm text-muted-foreground">
+                              Disconnected from SSE endpoint
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  // Regular HTTP Response
+                  <div className={wrapperClass}>
+                    <CodeMirror
+                      value={response ? formatData(response.data) : 'Send a request to see the response here...'}
+                      extensions={[json(), customTheme, customHighlighting]}
+                      height="300px"
+                      basicSetup={basicSetup}
+                      style={editorStyle}
+                      editable={false}
+                      readOnly={true}
+                    />
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="headers">
@@ -162,27 +220,6 @@ export function ResponseViewer({ onUpgradeToSSE }: ResponseViewerProps = {}) {
                 )}
               </div>
             </div>
-
-            {/* SSE Upgrade Banner */}
-            {response && 'isSSE' in response && response.isSSE && onUpgradeToSSE && (
-              <div className="mt-4 p-4 rounded-lg border-2 border-blue-500 bg-blue-500/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Radio className="size-5 text-blue-500" />
-                    <div>
-                      <p className="font-semibold text-sm">Server-Sent Events Detected</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        This endpoint supports real-time event streaming
-                      </p>
-                    </div>
-                  </div>
-                  <Button onClick={onUpgradeToSSE} size="sm">
-                    <Radio className="size-4 mr-2" />
-                    Connect to Stream
-                  </Button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </CardContent>

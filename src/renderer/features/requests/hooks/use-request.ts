@@ -3,7 +3,8 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useCallback, useRef } from 'react';
 import { HttpAdapter } from '@/lib/adapters/http-adapter';
-import type { HttpRequest } from '@/types';
+import { SSEAdapter } from '@/lib/adapters/sse-adapter';
+import type { HttpRequest, SSEConfig, SSEMessage } from '@/types';
 import {
   requestLoadingAtom,
   requestErrorAtom,
@@ -22,6 +23,8 @@ export function useRequest() {
   const addToHistory = useSetAtom(addResponseToHistoryAtom);
 
   const adapterRef = useRef<HttpAdapter | null>(null);
+  const sseAdapterRef = useRef<SSEAdapter | null>(null);
+  const sseMessagesRef = useRef<SSEMessage[]>([]);
 
   // Get or create adapter instance
   const getAdapter = useCallback(() => {
@@ -29,6 +32,15 @@ export function useRequest() {
       adapterRef.current = new HttpAdapter();
     }
     return adapterRef.current;
+  }, []);
+
+  // Disconnect any active SSE connection
+  const disconnectSSE = useCallback(() => {
+    if (sseAdapterRef.current) {
+      sseAdapterRef.current.disconnect();
+      sseAdapterRef.current = null;
+    }
+    sseMessagesRef.current = [];
   }, []);
 
   // Update tab state helper
@@ -48,6 +60,9 @@ export function useRequest() {
   // Execute HTTP request
   const sendRequest = useCallback(
     async (request: HttpRequest) => {
+      // Disconnect any existing SSE connection before making a new request
+      disconnectSSE();
+
       // Set loading state in active tab
       updateActiveTab({ loading: true, error: null, response: null });
 
@@ -55,9 +70,58 @@ export function useRequest() {
         const adapter = getAdapter();
         const response = await adapter.execute(request);
 
-        // Update active tab with response
-        updateActiveTab({ loading: false, response, error: null });
-        addToHistory(response);
+        // Check if this is an SSE endpoint
+        if (response.isSSE) {
+          // Automatically connect to SSE stream
+          const sseConfig: SSEConfig = {
+            id: request.id,
+            name: request.name,
+            protocol: 'sse',
+            url: request.url,
+            headers: request.headers,
+            createdAt: request.createdAt,
+            updatedAt: Date.now(),
+          };
+
+          const sseAdapter = new SSEAdapter();
+          sseAdapterRef.current = sseAdapter;
+          sseMessagesRef.current = [];
+
+          // Set up message listener
+          sseAdapter.on('message', (message: unknown) => {
+            const sseMessage = message as SSEMessage;
+            sseMessagesRef.current.push(sseMessage);
+
+            // Update tab with accumulated messages
+            updateActiveTab({
+              loading: false,
+              response: {
+                ...response,
+                isSSE: true,
+                sseMessages: [...sseMessagesRef.current],
+              },
+              error: null,
+            });
+          });
+
+          // Connect to SSE endpoint
+          await sseAdapter.connect(sseConfig);
+
+          // Initial response with SSE indicator
+          updateActiveTab({
+            loading: false,
+            response: {
+              ...response,
+              isSSE: true,
+              sseMessages: [],
+            },
+            error: null,
+          });
+        } else {
+          // Regular HTTP response
+          updateActiveTab({ loading: false, response, error: null });
+          addToHistory(response);
+        }
 
         return response;
       } catch (err) {
@@ -70,7 +134,7 @@ export function useRequest() {
         throw error;
       }
     },
-    [updateActiveTab, addToHistory, getAdapter]
+    [updateActiveTab, addToHistory, getAdapter, disconnectSSE]
   );
 
   // Cancel ongoing request
@@ -89,7 +153,8 @@ export function useRequest() {
       adapter.dispose();
       adapterRef.current = null;
     }
-  }, []);
+    disconnectSSE();
+  }, [disconnectSSE]);
 
   return {
     sendRequest,
