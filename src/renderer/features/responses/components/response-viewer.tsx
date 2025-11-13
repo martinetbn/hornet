@@ -82,7 +82,6 @@ export function ResponseViewer() {
               <TabsList>
                 <TabsTrigger value="body">Body</TabsTrigger>
                 <TabsTrigger value="headers">Headers</TabsTrigger>
-                <TabsTrigger value="cookies">Cookies</TabsTrigger>
               </TabsList>
 
               <TabsContent value="body">
@@ -104,16 +103,6 @@ export function ResponseViewer() {
                       {response?.headers
                         ? formatHeaders(response.headers)
                         : 'Response headers will appear here...'}
-                    </pre>
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="cookies">
-                <ScrollArea className="h-[300px] w-full rounded-md border">
-                  <div className="p-4">
-                    <pre className="text-sm font-mono text-muted-foreground">
-                      Cookies will appear here...
                     </pre>
                   </div>
                 </ScrollArea>
