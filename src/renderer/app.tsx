@@ -27,6 +27,7 @@ import {
   useSaveRequest,
 } from '@/features/collections/hooks';
 import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
+import { VariablesDialog } from '@/features/variables/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
 import type { HttpRequest, Request, CollectionItem, Tab } from '@/types';
@@ -36,6 +37,7 @@ function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
+  const [variablesDialogOpen, setVariablesDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
 
@@ -145,6 +147,7 @@ function App() {
             onCollectionRename={handleCollectionRename}
             onCollectionDragEnd={handleDragEnd}
             onNewFolder={() => setFolderDialogOpen(true)}
+            onVariablesClick={() => setVariablesDialogOpen(true)}
           />
         </ResizablePanel>
 
@@ -222,6 +225,11 @@ function App() {
         onOpenChange={setFolderDialogOpen}
         onFolderNameChange={setNewFolderName}
         onCreate={handleCreateFolder}
+      />
+
+      <VariablesDialog
+        open={variablesDialogOpen}
+        onOpenChange={setVariablesDialogOpen}
       />
 
       {/* Protocol Selection Dialog */}

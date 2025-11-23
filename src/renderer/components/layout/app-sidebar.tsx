@@ -15,7 +15,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Folder, History, Settings, Globe, Plus } from 'lucide-react';
+import { Folder, History, Settings, Variable, Plus } from 'lucide-react';
 import { CollectionTree } from '@/features/collections/components';
 import type { CollectionItem } from '@/stores/collection-atoms';
 
@@ -26,6 +26,7 @@ interface AppSidebarProps {
   onCollectionRename?: (item: CollectionItem) => void;
   onCollectionDragEnd?: (event: DragEndEvent) => void;
   onNewFolder?: () => void;
+  onVariablesClick?: () => void;
 }
 
 export function AppSidebar({
@@ -35,6 +36,7 @@ export function AppSidebar({
   onCollectionRename,
   onCollectionDragEnd,
   onNewFolder,
+  onVariablesClick,
 }: AppSidebarProps) {
   return (
     <Sidebar collapsible="none" side="left" className="border-r w-full h-screen overflow-x-hidden overflow-y-auto">
@@ -72,9 +74,9 @@ export function AppSidebar({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Globe className="size-4 shrink-0" />
-                  <span className="truncate">Environments</span>
+                <SidebarMenuButton onClick={onVariablesClick}>
+                  <Variable className="size-4 shrink-0" />
+                  <span className="truncate">Variables</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

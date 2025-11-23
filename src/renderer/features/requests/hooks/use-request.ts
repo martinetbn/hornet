@@ -10,6 +10,8 @@ import {
 } from '@/stores/request-atoms';
 import { addResponseToHistoryAtom } from '@/stores/response-atoms';
 import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
+import { variablesAtom } from '@/stores/environment-atoms';
+import { resolveRequestVariables } from '@/lib/utils/variable-resolver';
 
 export function useRequest() {
   // Read-only derived atoms (these automatically read from active tab)
@@ -20,6 +22,9 @@ export function useRequest() {
   const [tabs, setTabs] = useAtom(tabsAtom);
   const activeTabId = useAtomValue(activeTabIdAtom);
   const addToHistory = useSetAtom(addResponseToHistoryAtom);
+
+  // Get variables for resolution
+  const variables = useAtomValue(variablesAtom);
 
   const adapterRef = useRef<HttpAdapter | null>(null);
   const sseMessagesRef = useRef<SSEMessage[]>([]);
@@ -73,7 +78,11 @@ export function useRequest() {
 
       try {
         const adapter = getAdapter();
-        const response = await adapter.execute(request);
+
+        // Resolve variables in request before executing
+        const resolvedRequest = resolveRequestVariables(request, variables);
+
+        const response = await adapter.execute(resolvedRequest);
 
         // If SSE detected, set up message listeners
         if (response.isSSE) {
@@ -124,7 +133,7 @@ export function useRequest() {
         throw error;
       }
     },
-    [updateActiveTab, addToHistory, getAdapter, disconnectStream]
+    [updateActiveTab, addToHistory, getAdapter, disconnectStream, variables]
   );
 
   // Cancel ongoing request

@@ -1,16 +1,16 @@
 // Environment type definitions
 
-export interface EnvironmentVariable {
+export interface Variable {
+  id: string;
   key: string;
   value: string;
   enabled?: boolean;
-  description?: string;
 }
 
 export interface Environment {
   id: string;
   name: string;
-  variables: Record<string, string>;
+  variables: Variable[];
   createdAt: number;
   updatedAt: number;
 }

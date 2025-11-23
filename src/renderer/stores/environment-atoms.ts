@@ -2,41 +2,27 @@
 
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import type { Environment } from '@/types';
+import type { Environment, Variable } from '@/types';
 import { electronStorage } from '@/lib/adapters/electron-storage';
 
-// Environments persisted to disk
-export const environmentsAtom = atomWithStorage<Environment[]>(
-  'environments',
+// Global variables persisted to disk
+export const variablesAtom = atomWithStorage<Variable[]>(
+  'variables',
   [],
-  electronStorage<Environment[]>(),
+  electronStorage<Variable[]>(),
   { getOnInit: true }
 );
 
-// Selected environment ID
-export const selectedEnvironmentIdAtom = atomWithStorage<string | null>(
-  'selected-environment',
-  null,
-  electronStorage<string | null>(),
-  { getOnInit: true }
-);
-
-// Derived: Current environment
-export const currentEnvironmentAtom = atom(async (get) => {
-  const environments = await get(environmentsAtom);
-  const selectedId = await get(selectedEnvironmentIdAtom);
-  return environments.find((e: Environment) => e.id === selectedId) ?? null;
-});
-
-// Helper: Resolve variables in string
+// Helper: Resolve variables in string using [[variableName]] format
 export const resolveVariablesAtom = atom(
   null,
   async (get, _set, text: string): Promise<string> => {
-    const environment = await get(currentEnvironmentAtom);
-    if (!environment) return text;
+    const variables = await get(variablesAtom);
+    if (!variables || variables.length === 0) return text;
 
-    return text.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-      return environment.variables[key] ?? `{{${key}}}`;
+    return text.replace(/\[\[(\w+)\]\]/g, (match, key) => {
+      const variable = variables.find((v: Variable) => v.key === key && v.enabled !== false);
+      return variable ? variable.value : match;
     });
   }
 );
