@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Plus } from 'lucide-react';
+import { Plus, Globe, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder } from '@/features/requests/components';
+import { RequestBuilder, GrpcBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import {
   useCollection,
@@ -30,7 +30,7 @@ import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/co
 import { VariablesDialog } from '@/features/variables/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, Request, CollectionItem, Tab } from '@/types';
+import type { HttpRequest, GrpcRequest, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
 
 function App() {
@@ -89,21 +89,39 @@ function App() {
     setProtocolDialogOpen(true);
   };
 
-  const handleProtocolSelect = (protocol: 'http') => {
+  const handleProtocolSelect = (protocol: 'http' | 'grpc') => {
     const now = Date.now();
     const id = generateId();
 
-    const newRequest: HttpRequest = {
-      id,
-      name: 'New HTTP Request',
-      protocol: 'http',
-      method: 'GET',
-      url: 'https://api.example.com',
-      createdAt: now,
-      updatedAt: now,
-    };
-    createNewTab(newRequest);
+    let newRequest: Request;
 
+    if (protocol === 'grpc') {
+      const grpcRequest: GrpcRequest = {
+        id,
+        name: 'New gRPC Request',
+        protocol: 'grpc',
+        url: 'localhost:50051',
+        protoFile: '',
+        method: '',
+        data: {},
+        createdAt: now,
+        updatedAt: now,
+      };
+      newRequest = grpcRequest;
+    } else {
+      const httpRequest: HttpRequest = {
+        id,
+        name: 'New HTTP Request',
+        protocol: 'http',
+        method: 'GET',
+        url: 'https://api.example.com',
+        createdAt: now,
+        updatedAt: now,
+      };
+      newRequest = httpRequest;
+    }
+
+    createNewTab(newRequest);
     setProtocolDialogOpen(false);
   };
 
@@ -201,6 +219,19 @@ function App() {
                       <ResponseViewer />
                     </>
                   )}
+
+                  {activeTab.request.protocol === 'grpc' && (
+                    <>
+                      <GrpcBuilder
+                        request={activeTab.request as GrpcRequest}
+                        onRequestChange={(updatedRequest: GrpcRequest) => {
+                          // Update the tab with the modified request and mark as dirty
+                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                        }}
+                      />
+                      <ResponseViewer />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -247,10 +278,24 @@ function App() {
               className="h-auto w-full py-4 justify-start whitespace-normal"
               onClick={() => handleProtocolSelect('http')}
             >
+              <Globe className="size-5 mr-3 shrink-0 text-blue-500" />
               <div className="text-left w-full">
                 <div className="font-semibold">HTTP / REST</div>
                 <div className="text-sm text-muted-foreground break-words">
                   Traditional request/response HTTP requests (auto-detects SSE)
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto w-full py-4 justify-start whitespace-normal"
+              onClick={() => handleProtocolSelect('grpc')}
+            >
+              <Zap className="size-5 mr-3 shrink-0 text-yellow-500" />
+              <div className="text-left w-full">
+                <div className="font-semibold">gRPC</div>
+                <div className="text-sm text-muted-foreground break-words">
+                  High-performance RPC framework with Protocol Buffers
                 </div>
               </div>
             </Button>

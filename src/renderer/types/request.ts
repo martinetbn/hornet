@@ -44,11 +44,13 @@ export interface GrpcRequest extends BaseRequest {
   protocol: 'grpc';
   url: string;
   protoFile: string;
-  service: string;
+  protoContent?: string; // Store the actual proto file content for parsing
   method: string;
   data: unknown;
-  streamType: 'unary' | 'server-stream' | 'client-stream' | 'bidirectional';
   metadata?: Record<string, string>;
+  // Internal fields - auto-detected from proto file
+  service?: string;
+  streamType?: 'unary' | 'server-stream' | 'client-stream' | 'bidirectional';
 }
 
 export type Request = HttpRequest | WebSocketConfig | SocketIOConfig | GrpcRequest;
