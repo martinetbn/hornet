@@ -26,15 +26,11 @@ export function useCollectionDragDrop({ collections, setCollections }: UseCollec
 
       // Add item to new location
       if (over.id === 'root-droppable') {
-        // Add to end of root level (only folders can be at root)
-        if (isFolder(draggedItem)) {
-          updatedCollections = [...updatedCollections, draggedItem];
-        }
+        // Add to end of root level
+        updatedCollections = [...updatedCollections, draggedItem];
       } else if (over.id === 'root-top') {
-        // Add to beginning of root level (only folders can be at root)
-        if (isFolder(draggedItem)) {
-          updatedCollections = [draggedItem, ...updatedCollections];
-        }
+        // Add to beginning of root level
+        updatedCollections = [draggedItem, ...updatedCollections];
       } else {
         // Add to a specific folder
         const targetFolder = over.data.current?.item as CollectionFolder;

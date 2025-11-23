@@ -15,7 +15,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Folder, History, Settings, Variable, Plus } from 'lucide-react';
+import { Settings, Variable, Plus } from 'lucide-react';
 import { CollectionTree } from '@/features/collections/components';
 import type { CollectionItem } from '@/stores/collection-atoms';
 
@@ -61,18 +61,6 @@ export function AppSidebar({
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton isActive>
-                  <Folder className="size-4 shrink-0" />
-                  <span className="truncate">Collections</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <History className="size-4 shrink-0" />
-                  <span className="truncate">History</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onVariablesClick}>
                   <Variable className="size-4 shrink-0" />

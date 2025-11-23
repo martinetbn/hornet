@@ -32,14 +32,11 @@ export function RootDroppable({
   const isOverRoot = overId === 'root-droppable';
 
   return (
-    <div ref={setNodeRef} className="relative min-h-[100px]">
+    <div ref={setNodeRef} className="relative min-h-[200px]">
       {isOverRoot && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary rounded-full z-10" />
+        <div className="absolute inset-0 border-2 border-dashed border-primary rounded-md bg-primary/10 z-10" />
       )}
       {children}
-      {isOverRoot && (
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full z-10" />
-      )}
     </div>
   );
 }
