@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Plus, Globe, Zap, Plug } from 'lucide-react';
+import { Plus, Globe, Zap, Plug, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder, GrpcBuilder, WebSocketBuilder } from '@/features/requests/components';
+import { RequestBuilder, GrpcBuilder, WebSocketBuilder, SocketIOBuilder, SSEBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import {
   useCollection,
@@ -30,7 +30,7 @@ import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/co
 import { VariablesDialog } from '@/features/variables/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, GrpcRequest, WebSocketConfig, Request, CollectionItem, Tab } from '@/types';
+import type { HttpRequest, GrpcRequest, WebSocketConfig, SocketIOConfig, SSEConfig, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
 
 function App() {
@@ -89,7 +89,7 @@ function App() {
     setProtocolDialogOpen(true);
   };
 
-  const handleProtocolSelect = (protocol: 'http' | 'grpc' | 'websocket') => {
+  const handleProtocolSelect = (protocol: 'http' | 'grpc' | 'websocket' | 'socketio' | 'sse') => {
     const now = Date.now();
     const id = generateId();
 
@@ -118,6 +118,27 @@ function App() {
         updatedAt: now,
       };
       newRequest = wsRequest;
+    } else if (protocol === 'socketio') {
+      const socketioRequest: SocketIOConfig = {
+        id,
+        name: 'New Socket.IO Connection',
+        protocol: 'socketio',
+        url: 'http://localhost:3000',
+        path: '/socket.io',
+        createdAt: now,
+        updatedAt: now,
+      };
+      newRequest = socketioRequest;
+    } else if (protocol === 'sse') {
+      const sseRequest: SSEConfig = {
+        id,
+        name: 'New SSE Connection',
+        protocol: 'sse',
+        url: 'http://localhost:3000/events',
+        createdAt: now,
+        updatedAt: now,
+      };
+      newRequest = sseRequest;
     } else {
       const httpRequest: HttpRequest = {
         id,
@@ -255,6 +276,32 @@ function App() {
                       <ResponseViewer />
                     </>
                   )}
+
+                  {activeTab.request.protocol === 'socketio' && (
+                    <>
+                      <SocketIOBuilder
+                        request={activeTab.request as SocketIOConfig}
+                        onRequestChange={(updatedRequest: SocketIOConfig) => {
+                          // Update the tab with the modified request and mark as dirty
+                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                        }}
+                      />
+                      <ResponseViewer />
+                    </>
+                  )}
+
+                  {activeTab.request.protocol === 'sse' && (
+                    <>
+                      <SSEBuilder
+                        request={activeTab.request as SSEConfig}
+                        onRequestChange={(updatedRequest: SSEConfig) => {
+                          // Update the tab with the modified request and mark as dirty
+                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                        }}
+                      />
+                      <ResponseViewer />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -335,7 +382,19 @@ function App() {
                 </div>
               </div>
             </Button>
-            {/* Socket.IO and other protocols will be added here */}
+            <Button
+              variant="outline"
+              className="h-auto w-full py-4 justify-start whitespace-normal"
+              onClick={() => handleProtocolSelect('socketio')}
+            >
+              <Activity className="size-5 mr-3 shrink-0 text-orange-500" />
+              <div className="text-left w-full">
+                <div className="font-semibold">Socket.IO</div>
+                <div className="text-sm text-muted-foreground break-words">
+                  Event-based real-time bidirectional communication with reconnection
+                </div>
+              </div>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

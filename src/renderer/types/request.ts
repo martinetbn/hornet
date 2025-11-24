@@ -47,9 +47,19 @@ export interface SSEConfig extends BaseRequest {
 export interface SocketIOConfig extends BaseRequest {
   protocol: 'socketio';
   url: string;
+  path?: string; // Handshake path (default: /socket.io)
   auth?: Record<string, unknown>;
-  query?: Record<string, string>;
+  query?: KeyValuePair[]; // Query parameters
+  headers?: KeyValuePair[]; // Custom headers
+  params?: KeyValuePair[]; // Additional connection parameters
   transports?: ('websocket' | 'polling')[];
+  // Draft message to be sent
+  draftMessage?: {
+    event: string; // Event name
+    data: string; // JSON stringified data
+  };
+  // Events to listen to
+  events?: string[]; // List of event names to subscribe to
 }
 
 export interface GrpcRequest extends BaseRequest {

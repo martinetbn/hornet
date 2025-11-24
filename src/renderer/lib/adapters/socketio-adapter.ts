@@ -14,10 +14,28 @@ export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, Socket
       this.status = 'connecting';
       this.emit('status', this.status);
 
+      // Convert KeyValuePair[] to Record<string, string> for query params
+      const queryParams = config.query?.reduce((acc, { key, value, enabled }) => {
+        if (enabled && key) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
+      // Convert KeyValuePair[] to Record<string, string> for headers
+      const extraHeaders = config.headers?.reduce((acc, { key, value, enabled }) => {
+        if (enabled && key) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
       this.socket = io(config.url, {
+        path: config.path || '/socket.io',
         auth: config.auth,
         transports: config.transports || ['websocket', 'polling'],
-        query: config.query,
+        query: queryParams,
+        extraHeaders,
       });
 
       this.socket.on('connect', () => {
