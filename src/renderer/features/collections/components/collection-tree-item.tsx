@@ -19,7 +19,7 @@ import {
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
-import { Folder, File, ChevronRight, Globe, Radio, Activity, Zap } from 'lucide-react';
+import { Folder, File, ChevronRight, Globe, Radio, Activity, Zap, Plug } from 'lucide-react';
 import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
 import type { Request } from '@/types/request';
 
@@ -31,7 +31,7 @@ function getProtocolIcon(request: Request) {
     case 'http':
       return <Globe className={`${iconClass} text-blue-500`} />;
     case 'websocket':
-      return <Radio className={`${iconClass} text-purple-500`} />;
+      return <Plug className={`${iconClass} text-green-500`} />;
     case 'socketio':
       return <Activity className={`${iconClass} text-orange-500`} />;
     case 'grpc':

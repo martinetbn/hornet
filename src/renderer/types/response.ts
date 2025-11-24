@@ -17,6 +17,8 @@ export interface WebSocketMessage {
   type: 'sent' | 'received';
   data: string | ArrayBuffer | Blob;
   timestamp: number;
+  format?: 'text' | 'json' | 'xml' | 'html' | 'binary';
+  size?: number;
 }
 
 export interface SocketIOMessage {

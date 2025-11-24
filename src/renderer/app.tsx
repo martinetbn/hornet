@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Plus, Globe, Zap } from 'lucide-react';
+import { Plus, Globe, Zap, Plug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   ResizableHandle,
 } from '@/components/ui/resizable';
 import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder, GrpcBuilder } from '@/features/requests/components';
+import { RequestBuilder, GrpcBuilder, WebSocketBuilder } from '@/features/requests/components';
 import { ResponseViewer } from '@/features/responses/components';
 import {
   useCollection,
@@ -30,7 +30,7 @@ import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/co
 import { VariablesDialog } from '@/features/variables/components';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, GrpcRequest, Request, CollectionItem, Tab } from '@/types';
+import type { HttpRequest, GrpcRequest, WebSocketConfig, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
 
 function App() {
@@ -89,7 +89,7 @@ function App() {
     setProtocolDialogOpen(true);
   };
 
-  const handleProtocolSelect = (protocol: 'http' | 'grpc') => {
+  const handleProtocolSelect = (protocol: 'http' | 'grpc' | 'websocket') => {
     const now = Date.now();
     const id = generateId();
 
@@ -108,6 +108,16 @@ function App() {
         updatedAt: now,
       };
       newRequest = grpcRequest;
+    } else if (protocol === 'websocket') {
+      const wsRequest: WebSocketConfig = {
+        id,
+        name: 'New WebSocket Connection',
+        protocol: 'websocket',
+        url: 'wss://echo.websocket.org',
+        createdAt: now,
+        updatedAt: now,
+      };
+      newRequest = wsRequest;
     } else {
       const httpRequest: HttpRequest = {
         id,
@@ -232,6 +242,19 @@ function App() {
                       <ResponseViewer />
                     </>
                   )}
+
+                  {activeTab.request.protocol === 'websocket' && (
+                    <>
+                      <WebSocketBuilder
+                        request={activeTab.request as WebSocketConfig}
+                        onRequestChange={(updatedRequest: WebSocketConfig) => {
+                          // Update the tab with the modified request and mark as dirty
+                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                        }}
+                      />
+                      <ResponseViewer />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -299,7 +322,20 @@ function App() {
                 </div>
               </div>
             </Button>
-            {/* WebSocket, Socket.IO, and other protocols will be added here */}
+            <Button
+              variant="outline"
+              className="h-auto w-full py-4 justify-start whitespace-normal"
+              onClick={() => handleProtocolSelect('websocket')}
+            >
+              <Plug className="size-5 mr-3 shrink-0 text-green-500" />
+              <div className="text-left w-full">
+                <div className="font-semibold">WebSocket</div>
+                <div className="text-sm text-muted-foreground break-words">
+                  Full-duplex bidirectional communication for real-time apps
+                </div>
+              </div>
+            </Button>
+            {/* Socket.IO and other protocols will be added here */}
           </div>
         </DialogContent>
       </Dialog>

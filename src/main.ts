@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import { websocketService } from './services/websocket-service';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +62,73 @@ ipcMain.handle('storage:delete', async (_, key: string) => {
   } catch (error) {
     console.error('Error deleting from storage:', error);
     return false;
+  }
+});
+
+// WebSocket IPC handlers
+ipcMain.handle('websocket:connect', async (event, connectionId: string, options: {
+  url: string;
+  protocols?: string[];
+  headers?: Record<string, string>;
+}) => {
+  try {
+    await websocketService.connect(connectionId, options);
+
+    // Set up event listeners for this connection
+    const ws = websocketService.getConnection(connectionId);
+    if (ws) {
+      ws.on('message', (data: Buffer, isBinary: boolean) => {
+        event.sender.send(`websocket:message:${connectionId}`, {
+          data: isBinary ? data : data.toString(),
+          isBinary,
+          timestamp: Date.now(),
+        });
+      });
+
+      ws.on('close', (code: number, reason: Buffer) => {
+        event.sender.send(`websocket:close:${connectionId}`, {
+          code,
+          reason: reason.toString(),
+        });
+      });
+
+      ws.on('error', (error: Error) => {
+        event.sender.send(`websocket:error:${connectionId}`, {
+          message: error.message,
+        });
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('websocket:send', async (_, connectionId: string, data: string | Buffer) => {
+  try {
+    await websocketService.send({ connectionId, data });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('websocket:disconnect', async (_, connectionId: string) => {
+  try {
+    await websocketService.disconnect(connectionId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('websocket:status', async (_, connectionId: string) => {
+  try {
+    const status = websocketService.getStatus(connectionId);
+    return { success: true, status };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
   }
 });
 
@@ -125,4 +193,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  // Clean up all WebSocket connections
+  websocketService.cleanup();
 });

@@ -2,4 +2,5 @@
 
 export * from './request-builder';
 export * from './grpc-builder';
+export * from './websocket-builder';
 export * from './tab-bar';

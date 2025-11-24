@@ -32,3 +32,13 @@ export const addMessageAtom = atom(
     set(messagesAtom, messages);
   }
 );
+
+// Write-only: Clear messages for a connection
+export const clearMessagesAtom = atom(
+  null,
+  (get, set, connectionId: string) => {
+    const messages = new Map(get(messagesAtom));
+    messages.set(connectionId, []);
+    set(messagesAtom, messages);
+  }
+);

@@ -2,7 +2,7 @@
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
-export type ProtocolType = 'http' | 'websocket' | 'socketio' | 'grpc';
+export type ProtocolType = 'http' | 'websocket' | 'sse' | 'socketio' | 'grpc';
 
 export interface KeyValuePair {
   key: string;
@@ -34,3 +34,5 @@ export interface AuthConfig {
 }
 
 export type BodyType = 'none' | 'json' | 'xml' | 'html' | 'text' | 'form-data' | 'urlencoded';
+
+export type WebSocketMessageFormat = 'text' | 'json' | 'xml' | 'html' | 'binary';

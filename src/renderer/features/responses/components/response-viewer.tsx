@@ -19,15 +19,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { currentResponseAtom } from '@/stores/response-atoms';
 import { requestLoadingAtom, requestErrorAtom } from '@/stores/request-atoms';
-import { Loader2, AlertCircle, Radio } from 'lucide-react';
+import { currentConnectionMessagesAtom } from '@/stores/connection-atoms';
+import { Loader2, AlertCircle, Radio, Plug } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
+import { xml } from '@codemirror/lang-xml';
+import { html } from '@codemirror/lang-html';
 import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
+import type { WebSocketMessage } from '@/types';
 
 export function ResponseViewer() {
   const response = useAtomValue(currentResponseAtom);
   const loading = useAtomValue(requestLoadingAtom);
   const error = useAtomValue(requestErrorAtom);
+  const connectionMessages = useAtomValue(currentConnectionMessagesAtom);
 
   // Use shared CodeMirror theme hook
   const {
@@ -79,6 +84,40 @@ export function ResponseViewer() {
     if (status >= 400) return 'destructive';
     return 'secondary';
   };
+
+  // Filter and format WebSocket messages
+  const wsMessages = connectionMessages.filter((msg): msg is WebSocketMessage =>
+    'data' in msg && ('type' in msg && (msg.type === 'sent' || msg.type === 'received'))
+  );
+
+  const formatMessageData = (data: string | ArrayBuffer | Blob): string => {
+    if (data instanceof ArrayBuffer) {
+      return `[Binary data: ${data.byteLength} bytes]`;
+    }
+    if (data instanceof Blob) {
+      return `[Blob: ${data.size} bytes]`;
+    }
+    return data;
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const getLanguageExtension = (format?: string) => {
+    switch (format) {
+      case 'json': return json();
+      case 'xml': return xml();
+      case 'html': return html();
+      default: return json(); // default to json for syntax highlighting
+    }
+  };
+
+  // Check if we have WebSocket messages
+  const hasWebSocketMessages = wsMessages.length > 0;
+
   return (
     <Card>
       <CardHeader>
@@ -117,7 +156,63 @@ export function ResponseViewer() {
               </TabsList>
 
               <TabsContent value="body">
-                {response && 'isSSE' in response && response.isSSE && response.sseMessages ? (
+                {hasWebSocketMessages ? (
+                  // WebSocket Messages View
+                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto space-y-2">
+                    {wsMessages.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <Plug className="size-8 mx-auto mb-2 text-green-500" />
+                        <p>WebSocket Connected</p>
+                        <p className="text-sm mt-1">Send a message to start the conversation</p>
+                      </div>
+                    ) : (
+                      wsMessages.slice().reverse().map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`border-l-4 ${
+                            msg.type === 'sent' ? 'border-blue-500 bg-blue-500/10' : 'border-green-500 bg-green-500/10'
+                          } p-3 rounded`}
+                        >
+                          <div className="flex items-start justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={msg.type === 'sent' ? 'default' : 'secondary'}
+                                className={msg.type === 'sent' ? 'bg-blue-500' : 'bg-green-500'}
+                              >
+                                {msg.type === 'sent' ? 'Sent' : 'Received'}
+                              </Badge>
+                              {msg.format && (
+                                <Badge variant="outline" className="text-xs">
+                                  {msg.format.toUpperCase()}
+                                </Badge>
+                              )}
+                              {msg.size && (
+                                <span className="text-xs text-muted-foreground">
+                                  {formatBytes(msg.size)}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(msg.timestamp).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <div className={wrapperClass}>
+                            <CodeMirror
+                              value={formatMessageData(msg.data)}
+                              extensions={[getLanguageExtension(msg.format), customTheme, customHighlighting]}
+                              height="auto"
+                              maxHeight="300px"
+                              basicSetup={basicSetup}
+                              style={editorStyle}
+                              editable={false}
+                              readOnly={true}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : response && 'isSSE' in response && response.isSSE && response.sseMessages ? (
                   // SSE Messages View
                   <div className="border rounded-lg p-4 max-h-96 overflow-y-auto space-y-2">
                     {response.sseMessages.length === 0 ? (

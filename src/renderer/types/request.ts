@@ -1,6 +1,6 @@
 // Request type definitions
 
-import type { HttpMethod, ProtocolType, KeyValuePair, AuthConfig, BodyType } from './common';
+import type { HttpMethod, ProtocolType, KeyValuePair, AuthConfig, BodyType, WebSocketMessageFormat } from './common';
 
 export interface BaseRequest {
   id: string;
@@ -30,6 +30,18 @@ export interface WebSocketConfig extends BaseRequest {
   url: string;
   protocols?: string[];
   headers?: KeyValuePair[];
+  params?: KeyValuePair[];
+  // Draft message to be sent
+  draftMessage?: {
+    format: WebSocketMessageFormat;
+    content: string;
+  };
+}
+
+export interface SSEConfig extends BaseRequest {
+  protocol: 'sse';
+  url: string;
+  headers?: KeyValuePair[];
 }
 
 export interface SocketIOConfig extends BaseRequest {
@@ -53,4 +65,4 @@ export interface GrpcRequest extends BaseRequest {
   streamType?: 'unary' | 'server-stream' | 'client-stream' | 'bidirectional';
 }
 
-export type Request = HttpRequest | WebSocketConfig | SocketIOConfig | GrpcRequest;
+export type Request = HttpRequest | WebSocketConfig | SSEConfig | SocketIOConfig | GrpcRequest;
