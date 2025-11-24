@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { useAtom } from 'jotai';
 import { Plus, Globe, Zap, Plug, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,7 @@ import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
 import type { HttpRequest, GrpcRequest, WebSocketConfig, SocketIOConfig, SSEConfig, Request, CollectionItem, Tab } from '@/types';
 import { generateId } from '@/stores/collection-atoms';
+import { sidebarWidthAtom } from '@/stores/sidebar-atoms';
 
 function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -43,6 +45,9 @@ function App() {
 
   // Theme management
   const { theme, themePreference, setTheme } = useTheme();
+
+  // Sidebar width persistence
+  const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
 
   // Collection management
   const {
@@ -187,8 +192,17 @@ function App() {
 
   return (
     <SidebarProvider>
-      <ResizablePanelGroup direction="horizontal" className="h-screen">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-screen"
+        onLayout={(sizes) => {
+          // Save the first panel's size (sidebar width)
+          if (sizes[0] !== undefined) {
+            setSidebarWidth(sizes[0]);
+          }
+        }}
+      >
+        <ResizablePanel defaultSize={sidebarWidth} minSize={15} maxSize={30}>
           <AppSidebar
             collections={collections}
             onCollectionSelect={handleFileSelect}
@@ -202,7 +216,7 @@ function App() {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize={80}>
+        <ResizablePanel defaultSize={100 - sidebarWidth}>
           <SidebarInset className="h-screen overflow-auto">
             <AppHeader
               tabs={tabs}
