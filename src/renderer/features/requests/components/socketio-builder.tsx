@@ -238,67 +238,61 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Connection URL Section */}
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <Input
-              value={request.url}
-              onChange={(e) => handleUrlChange(e.target.value)}
-              placeholder="Enter Socket.IO URL (e.g., http://localhost:3000)"
-              className="flex-1 h-10"
-              disabled={isConnected || isConnecting}
-            />
+        <div className="flex gap-2">
+          <Input
+            value={request.url}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder="Enter Socket.IO URL (e.g., http://localhost:3000)"
+            className="flex-1 h-10"
+            disabled={isConnected || isConnecting}
+          />
 
-            {!isConnected ? (
-              <Button
-                onClick={handleConnect}
-                disabled={isConnecting || !request.url}
-                className="h-10"
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="size-4 mr-2 animate-spin" />
-                    Connecting
-                  </>
-                ) : (
-                  <>
-                    <Activity className="size-4 mr-2" />
-                    Connect
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleDisconnect}
-                disabled={isDisconnecting}
-                variant="destructive"
-                className="h-10"
-              >
-                {isDisconnecting ? (
-                  <>
-                    <Loader2 className="size-4 mr-2 animate-spin" />
-                    Disconnecting
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="size-4 mr-2" />
-                    Disconnect
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+          <Input
+            value={request.path || '/socket.io'}
+            onChange={(e) => handlePathChange(e.target.value)}
+            placeholder="/socket.io"
+            className="w-32 h-10"
+            disabled={isConnected || isConnecting}
+          />
 
-          {/* Handshake Path Input */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium whitespace-nowrap">Path:</label>
-            <Input
-              value={request.path || '/socket.io'}
-              onChange={(e) => handlePathChange(e.target.value)}
-              placeholder="/socket.io"
-              className="flex-1 h-9"
-              disabled={isConnected || isConnecting}
-            />
-          </div>
+          {!isConnected ? (
+            <Button
+              onClick={handleConnect}
+              disabled={isConnecting || !request.url}
+              className="h-10"
+            >
+              {isConnecting ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Connecting
+                </>
+              ) : (
+                <>
+                  <Activity className="size-4 mr-2" />
+                  Connect
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleDisconnect}
+              disabled={isDisconnecting}
+              variant="destructive"
+              className="h-10"
+            >
+              {isDisconnecting ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Disconnecting
+                </>
+              ) : (
+                <>
+                  <XCircle className="size-4 mr-2" />
+                  Disconnect
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Connection Configuration */}
