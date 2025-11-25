@@ -4,7 +4,6 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
@@ -15,7 +14,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Settings, Variable, Plus } from 'lucide-react';
+import { Variable, Plus } from 'lucide-react';
 import { CollectionTree } from '@/features/collections/components';
 import type { CollectionItem } from '@/stores/collection-atoms';
 
@@ -95,16 +94,6 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Settings className="size-4 shrink-0" />
-              <span className="truncate">Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
