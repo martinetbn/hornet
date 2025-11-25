@@ -97,9 +97,7 @@
     },
     "mac": {
       "target": ["dmg", "zip"],
-      "category": "public.app-category.developer-tools",
-      "name": "Hornet",
-      "publisherName": "Martin Etchebarne"
+      "category": "public.app-category.developer-tools"
     },
     "win": {
       "target": ["nsis", "portable"],
