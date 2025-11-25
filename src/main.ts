@@ -179,6 +179,8 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Set the application name
+  app.setName('Hornet');
   await initStorage();
   createWindow();
 

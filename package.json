@@ -1,6 +1,8 @@
 {
   "name": "hornet",
   "version": "0.1.0",
+  "description": "An API client that supports HTTP, WS, Socket.IO and gRPC.",
+  "author": "Martin Etchebarne",
   "main": "dist/main.js",
   "type": "module",
   "private": true,
@@ -79,6 +81,7 @@
   },
   "build": {
     "appId": "com.hornet.app",
+    "productName": "Hornet",
     "files": [
       "dist/**/*"
     ],
@@ -87,14 +90,27 @@
     },
     "linux": {
       "target": ["AppImage", "deb"],
-      "category": "Development"
+      "category": "Development",
+      "synopsis": "API client for HTTP, WebSocket, Socket.IO and gRPC",
+      "description": "An API client that supports HTTP, WS, Socket.IO and gRPC.",
+      "maintainer": "Martin Etchebarne"
     },
     "mac": {
       "target": ["dmg", "zip"],
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "name": "Hornet",
+      "publisherName": "Martin Etchebarne"
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": ["nsis", "portable"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hornet"
     }
   }
 }
