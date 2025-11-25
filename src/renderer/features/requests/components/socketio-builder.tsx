@@ -20,7 +20,7 @@ import { useConnection } from '../hooks';
 import type { SocketIOConfig, SocketIOMessage } from '@/types';
 import { KeyValueEditor } from './key-value-editor';
 import { useSetAtom } from 'jotai';
-import { selectedConnectionIdAtom, clearMessagesAtom } from '@/stores/connection-atoms';
+import { clearMessagesAtom } from '@/stores/connection-atoms';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
@@ -34,7 +34,6 @@ interface SocketIOBuilderProps {
 
 export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderProps) {
   const { connection, connect, disconnect, sendMessage } = useConnection(request.id, request);
-  const setSelectedConnectionId = useSetAtom(selectedConnectionIdAtom);
   const clearMessages = useSetAtom(clearMessagesAtom);
 
   // Message composer state
@@ -62,13 +61,13 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
   });
 
   // Set this connection as selected when component mounts
-  useEffect(() => {
-    setSelectedConnectionId(request.id);
-    return () => {
-      // Optionally clear selection on unmount
-      // setSelectedConnectionId(null);
-    };
-  }, [request.id, setSelectedConnectionId]);
+  // useEffect(() => {
+  //   setSelectedConnectionId(request.id);
+  //   return () => {
+  //     // Optionally clear selection on unmount
+  //     // setSelectedConnectionId(null);
+  //   };
+  // }, [request.id, setSelectedConnectionId]);
 
   const isConnected = connection?.status === 'connected';
   const isConnecting = connection?.status === 'connecting';

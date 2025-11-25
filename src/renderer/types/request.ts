@@ -6,6 +6,7 @@ export interface BaseRequest {
   id: string;
   name: string;
   description?: string;
+  workspaceId?: string;
   protocol: ProtocolType;
   createdAt: number;
   updatedAt: number;

@@ -1,17 +1,20 @@
 // Hook for managing connection-based protocols (WebSocket, Socket.IO)
 
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useSetAtom, useAtomValue } from 'jotai';
 import { useCallback, useRef, useEffect } from 'react';
 import type { WebSocketConfig, SocketIOConfig } from '@/types';
 import type { ConnectionAdapter, Connection } from '@/types/protocol';
 import { createAdapter } from '@/lib/adapters';
 import { connectionsAtom, addMessageAtom } from '@/stores/connection-atoms';
+import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
+import { resolveWebSocketVariables, resolveSocketIOVariables } from '@/lib/utils/variable-resolver';
 
 type ConnectionConfig = WebSocketConfig | SocketIOConfig;
 
 export function useConnection(connectionId: string, config: ConnectionConfig) {
   const [connections, setConnections] = useAtom(connectionsAtom);
   const addMessage = useSetAtom(addMessageAtom);
+  const variables = useAtomValue(activeWorkspaceVariablesAtom);
 
   const adapterRef = useRef<ConnectionAdapter<any, any> | null>(null);
   const connection = connections.get(connectionId);
@@ -83,8 +86,16 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         return updated;
       });
 
+      // Resolve variables before connecting
+      let resolvedConfig;
+      if (config.protocol === 'websocket') {
+        resolvedConfig = resolveWebSocketVariables(config as WebSocketConfig, variables);
+      } else {
+        resolvedConfig = resolveSocketIOVariables(config as SocketIOConfig, variables);
+      }
+
       const adapter = getAdapter();
-      await adapter.connect(config);
+      await adapter.connect(resolvedConfig);
 
       // Update connection status
       setConnections((prev) => {
@@ -118,7 +129,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
 
       throw error;
     }
-  }, [connectionId, config, setConnections, getAdapter]);
+  }, [connectionId, config, setConnections, getAdapter, variables]);
 
   // Disconnect from the service
   const disconnect = useCallback(async () => {

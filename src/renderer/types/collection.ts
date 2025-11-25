@@ -7,6 +7,7 @@ export interface Collection {
   id: string;
   name: string;
   description?: string;
+  workspaceId?: string;
   createdAt: number;
   updatedAt: number;
   folders: CollectionFolder[];
@@ -17,6 +18,7 @@ export interface CollectionFolder {
   id: string;
   name: string;
   type: 'folder';
+  workspaceId?: string;
   children: CollectionItem[];
 }
 
@@ -27,6 +29,7 @@ export interface Tab<T = Request> {
   name: string;
   path: string[];
   request: T;
+  workspaceId?: string;
   isDirty?: boolean;
   // Per-tab response state
   response?: HttpResponse | null;

@@ -10,8 +10,8 @@ import {
 } from '@/stores/request-atoms';
 import { addResponseToHistoryAtom } from '@/stores/response-atoms';
 import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
-import { variablesAtom } from '@/stores/environment-atoms';
-import { resolveRequestVariables } from '@/lib/utils/variable-resolver';
+import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
+import { resolveHttpRequestVariables } from '@/lib/utils/variable-resolver';
 
 export function useRequest() {
   // Read-only derived atoms (these automatically read from active tab)
@@ -23,8 +23,8 @@ export function useRequest() {
   const activeTabId = useAtomValue(activeTabIdAtom);
   const addToHistory = useSetAtom(addResponseToHistoryAtom);
 
-  // Get variables for resolution
-  const variables = useAtomValue(variablesAtom);
+  // Get variables for resolution (scoped to active workspace)
+  const variables = useAtomValue(activeWorkspaceVariablesAtom);
 
   const adapterRef = useRef<HttpAdapter | null>(null);
   const sseMessagesRef = useRef<SSEMessage[]>([]);
@@ -80,7 +80,7 @@ export function useRequest() {
         const adapter = getAdapter();
 
         // Resolve variables in request before executing
-        const resolvedRequest = resolveRequestVariables(request, variables);
+        const resolvedRequest = resolveHttpRequestVariables(request, variables);
 
         const response = await adapter.execute(resolvedRequest);
 

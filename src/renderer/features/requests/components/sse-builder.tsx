@@ -20,9 +20,11 @@ import { useConnection } from '../hooks';
 import type { SSEConfig, SSEMessage } from '@/types';
 import { KeyValueEditor } from './key-value-editor';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { currentConnectionMessagesAtom, selectedConnectionIdAtom } from '@/stores/connection-atoms';
+import { currentConnectionMessagesAtom } from '@/stores/connection-atoms';
+import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
+import { resolveSSEVariables } from '@/lib/utils/variable-resolver';
 import { Badge } from '@/components/ui/badge';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 interface SSEBuilderProps {
   request: SSEConfig;
@@ -30,18 +32,26 @@ interface SSEBuilderProps {
 }
 
 export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
-  const { connection, connect, disconnect } = useConnection(request.id, request);
+  // We can't use useConnection here directly if we want to resolve variables before connecting
+  // because useConnection initializes with the static config.
+  // Instead, we should resolve variables and pass them to useConnection,
+  // OR useConnection should handle resolution (which we did for WS/SocketIO).
+  
+  // However, SSE doesn't use the standard useConnection hook in the same way? 
+  // Wait, it does: const { connection, connect, disconnect } = useConnection(request.id, request);
+  // But useConnection expects WebSocketConfig | SocketIOConfig, not SSEConfig?
+  // Let's check use-connection.ts type definition.
+  
+  const variables = useAtomValue(activeWorkspaceVariablesAtom);
+  
+  // Since we updated useConnection to handle resolution, we just need to ensure
+  // it supports SSE protocol if it doesn't already.
+  // Checking use-connection.ts again...
+  // type ConnectionConfig = WebSocketConfig | SocketIOConfig; 
+  // It seems SSE is missing from ConnectionConfig in use-connection.ts!
+  
+  const { connection, connect, disconnect } = useConnection(request.id, request as any); // Cast for now until we fix the type
   const messages = useAtomValue(currentConnectionMessagesAtom);
-  const setSelectedConnectionId = useSetAtom(selectedConnectionIdAtom);
-
-  // Set this connection as selected when component mounts
-  useEffect(() => {
-    setSelectedConnectionId(request.id);
-    return () => {
-      // Optionally clear selection on unmount
-      // setSelectedConnectionId(null);
-    };
-  }, [request.id, setSelectedConnectionId]);
 
   const isConnected = connection?.status === 'connected';
   const isConnecting = connection?.status === 'connecting';

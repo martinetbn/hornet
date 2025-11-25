@@ -4,6 +4,8 @@ import { atom } from 'jotai';
 import type { Connection } from '@/types/protocol';
 import type { WebSocketMessage, SocketIOMessage, SSEMessage } from '@/types';
 
+import { activeTabIdAtom } from './collection-atoms';
+
 // Map of active connections by ID
 export const connectionsAtom = atom<Map<string, Connection>>(new Map());
 
@@ -11,11 +13,11 @@ export const connectionsAtom = atom<Map<string, Connection>>(new Map());
 export const messagesAtom = atom<Map<string, (WebSocketMessage | SocketIOMessage | SSEMessage)[]>>(new Map());
 
 // Selected connection ID
-export const selectedConnectionIdAtom = atom<string | null>(null);
+// export const selectedConnectionIdAtom = atom<string | null>(null);
 
-// Derived: Messages for selected connection
+// Derived: Messages for selected connection (active tab)
 export const currentConnectionMessagesAtom = atom((get) => {
-  const connectionId = get(selectedConnectionIdAtom);
+  const connectionId = get(activeTabIdAtom);
   if (!connectionId) return [];
 
   const messages = get(messagesAtom);

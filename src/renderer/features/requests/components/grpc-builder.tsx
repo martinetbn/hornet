@@ -78,13 +78,20 @@ function parseProtoFile(content: string): ProtoMethod[] {
   return methods;
 }
 
+import { useAtomValue } from 'jotai';
+import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
+import { resolveGrpcVariables } from '@/lib/utils/variable-resolver';
+
 export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
+  const variables = useAtomValue(activeWorkspaceVariablesAtom);
   const loading = false; // TODO: Implement gRPC request hook
   const [availableMethods, setAvailableMethods] = useState<ProtoMethod[]>([]);
 
   // Parse proto content on component mount or when proto content changes
   useEffect(() => {
     if (request.protoContent) {
+      // Resolve variables in the request before parsing proto file if needed?
+      // But protoContent is the file content, variables might be in protoFile path
       const methods = parseProtoFile(request.protoContent);
       setAvailableMethods(methods);
     } else {
@@ -93,8 +100,11 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
   }, [request.protoContent]);
 
   const handleSend = async () => {
-    // TODO: Implement gRPC send functionality
-    console.log('Sending gRPC request:', request);
+    // Resolve variables before sending
+    const resolvedRequest = resolveGrpcVariables(request, variables);
+    
+    // TODO: Implement gRPC send functionality using resolvedRequest
+    console.log('Sending gRPC request:', resolvedRequest);
   };
 
   const handleUrlChange = (url: string) => {

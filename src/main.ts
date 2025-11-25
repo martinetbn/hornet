@@ -8,42 +8,71 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
+let storageCache: Record<string, any> = {};
+let saveTimeout: NodeJS.Timeout | null = null;
+let isSaving = false;
 
 // Storage path for app data
 const getStoragePath = () => {
   return path.join(app.getPath('userData'), 'storage.json');
 };
 
-// Initialize storage file if it doesn't exist
+// Initialize storage
 const initStorage = async () => {
   const storagePath = getStoragePath();
   try {
-    await fs.access(storagePath);
-  } catch {
-    await fs.writeFile(storagePath, JSON.stringify({}));
+    const data = await fs.readFile(storagePath, 'utf-8');
+    try {
+      storageCache = JSON.parse(data);
+    } catch (parseError) {
+      // If corrupted, backup and reset
+      console.error('Storage corrupted, resetting:', parseError);
+      await fs.writeFile(`${storagePath}.corrupted.${Date.now()}`, data);
+      storageCache = {};
+      await fs.writeFile(storagePath, JSON.stringify(storageCache));
+    }
+  } catch (error) {
+    // If doesn't exist, create it
+    storageCache = {};
+    await fs.writeFile(storagePath, JSON.stringify(storageCache));
   }
+};
+
+// Debounced save to disk
+const saveStorage = () => {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  
+  saveTimeout = setTimeout(async () => {
+    if (isSaving) {
+      saveStorage(); // Retry later if already saving
+      return;
+    }
+    
+    isSaving = true;
+    const storagePath = getStoragePath();
+    const tempPath = `${storagePath}.tmp`;
+    
+    try {
+      // Atomic write: write to tmp then rename
+      await fs.writeFile(tempPath, JSON.stringify(storageCache, null, 2));
+      await fs.rename(tempPath, storagePath);
+    } catch (error) {
+      console.error('Error saving storage:', error);
+    } finally {
+      isSaving = false;
+    }
+  }, 500); // 500ms debounce
 };
 
 // IPC handlers for storage
 ipcMain.handle('storage:get', async (_, key: string) => {
-  const storagePath = getStoragePath();
-  try {
-    const data = await fs.readFile(storagePath, 'utf-8');
-    const storage = JSON.parse(data);
-    return storage[key];
-  } catch (error) {
-    console.error('Error reading storage:', error);
-    return null;
-  }
+  return storageCache[key];
 });
 
 ipcMain.handle('storage:set', async (_, key: string, value: any) => {
-  const storagePath = getStoragePath();
   try {
-    const data = await fs.readFile(storagePath, 'utf-8');
-    const storage = JSON.parse(data);
-    storage[key] = value;
-    await fs.writeFile(storagePath, JSON.stringify(storage, null, 2));
+    storageCache[key] = value;
+    saveStorage();
     return true;
   } catch (error) {
     console.error('Error writing storage:', error);
@@ -52,12 +81,9 @@ ipcMain.handle('storage:set', async (_, key: string, value: any) => {
 });
 
 ipcMain.handle('storage:delete', async (_, key: string) => {
-  const storagePath = getStoragePath();
   try {
-    const data = await fs.readFile(storagePath, 'utf-8');
-    const storage = JSON.parse(data);
-    delete storage[key];
-    await fs.writeFile(storagePath, JSON.stringify(storage, null, 2));
+    delete storageCache[key];
+    saveStorage();
     return true;
   } catch (error) {
     console.error('Error deleting from storage:', error);

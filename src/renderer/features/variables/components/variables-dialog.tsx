@@ -1,7 +1,7 @@
 // Variables management dialog component
 
 import { useState } from 'react';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { Plus, Trash2, Check, X } from 'lucide-react';
 import {
   Dialog,
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { variablesAtom } from '@/stores/environment-atoms';
+import { activeWorkspaceIdAtom } from '@/stores/workspace-atoms';
 import type { Variable } from '@/types';
 import { nanoid } from 'nanoid';
 
@@ -31,12 +32,32 @@ interface VariablesDialogProps {
 }
 
 export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
-  const [variables, setVariables] = useAtom(variablesAtom);
+  const [allVariables, setAllVariables] = useAtom(variablesAtom);
+  const activeWorkspaceId = useAtomValue(activeWorkspaceIdAtom);
+
+  // Filter variables by workspace
+  const variables = allVariables.filter((v) => {
+    if (v.workspaceId) {
+      return v.workspaceId === activeWorkspaceId;
+    }
+    return activeWorkspaceId === 'default';
+  });
+
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editKey, setEditKey] = useState('');
   const [editValue, setEditValue] = useState('');
+
+  const updateVariables = (newWorkspaceVariables: Variable[]) => {
+    const otherVariables = allVariables.filter((v) => {
+      if (v.workspaceId) {
+        return v.workspaceId !== activeWorkspaceId;
+      }
+      return activeWorkspaceId !== 'default';
+    });
+    setAllVariables([...otherVariables, ...newWorkspaceVariables]);
+  };
 
   const handleAddVariable = () => {
     if (!newKey.trim() || !newValue.trim()) return;
@@ -46,19 +67,20 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
       key: newKey.trim(),
       value: newValue.trim(),
       enabled: true,
+      workspaceId: activeWorkspaceId,
     };
 
-    setVariables([...variables, newVariable]);
+    updateVariables([...variables, newVariable]);
     setNewKey('');
     setNewValue('');
   };
 
   const handleDeleteVariable = (id: string) => {
-    setVariables(variables.filter((v) => v.id !== id));
+    updateVariables(variables.filter((v) => v.id !== id));
   };
 
   const handleToggleVariable = (id: string) => {
-    setVariables(
+    updateVariables(
       variables.map((v) =>
         v.id === id ? { ...v, enabled: !v.enabled } : v
       )
@@ -74,7 +96,7 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
   const handleSaveEdit = () => {
     if (!editingId || !editKey.trim() || !editValue.trim()) return;
 
-    setVariables(
+    updateVariables(
       variables.map((v) =>
         v.id === editingId
           ? { ...v, key: editKey.trim(), value: editValue.trim() }

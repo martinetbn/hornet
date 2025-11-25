@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Plus, Globe, Zap, Plug, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,11 +29,21 @@ import {
 } from '@/features/collections/hooks';
 import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
 import { VariablesDialog } from '@/features/variables/components';
+import { WorkspaceDialog } from '@/features/workspaces/components/workspace-dialog';
 import { useKeyboardShortcuts } from '@/features/requests/hooks';
 import { useTheme } from '@/features/settings/hooks';
 import type { HttpRequest, GrpcRequest, WebSocketConfig, SocketIOConfig, SSEConfig, Request, CollectionItem, Tab } from '@/types';
+import type { Workspace } from '@/types/workspace';
 import { generateId } from '@/stores/collection-atoms';
 import { sidebarWidthAtom } from '@/stores/sidebar-atoms';
+import {
+  workspacesAtom,
+  activeWorkspaceAtom,
+  createWorkspaceAtom,
+  updateWorkspaceAtom,
+  deleteWorkspaceAtom,
+  activeWorkspaceIdAtom,
+} from '@/stores/workspace-atoms';
 
 function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -42,6 +52,39 @@ function App() {
   const [variablesDialogOpen, setVariablesDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
+
+  // Workspace management
+  const activeWorkspace = useAtomValue(activeWorkspaceAtom);
+  const workspaces = useAtomValue(workspacesAtom);
+  const setActiveWorkspaceId = useSetAtom(activeWorkspaceIdAtom);
+  const createWorkspace = useSetAtom(createWorkspaceAtom);
+  const updateWorkspace = useSetAtom(updateWorkspaceAtom);
+  const deleteWorkspace = useSetAtom(deleteWorkspaceAtom);
+
+  const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
+  const [workspaceDialogMode, setWorkspaceDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+
+  const handleWorkspaceSubmit = (name: string) => {
+    if (workspaceDialogMode === 'create') {
+      createWorkspace(name);
+    } else if (editingWorkspace) {
+      updateWorkspace({ id: editingWorkspace.id, name });
+    }
+    setWorkspaceDialogOpen(false);
+  };
+
+  const openCreateWorkspace = () => {
+    setWorkspaceDialogMode('create');
+    setEditingWorkspace(null);
+    setWorkspaceDialogOpen(true);
+  };
+
+  const openEditWorkspace = (workspace: Workspace) => {
+    setWorkspaceDialogMode('edit');
+    setEditingWorkspace(workspace);
+    setWorkspaceDialogOpen(true);
+  };
 
   // Theme management
   const { theme, themePreference, setTheme } = useTheme();
@@ -205,6 +248,12 @@ function App() {
         <ResizablePanel defaultSize={sidebarWidth} minSize={15} maxSize={30}>
           <AppSidebar
             collections={collections}
+            activeWorkspace={activeWorkspace}
+            workspaces={workspaces}
+            onWorkspaceChange={setActiveWorkspaceId}
+            onWorkspaceCreate={openCreateWorkspace}
+            onWorkspaceEdit={openEditWorkspace}
+            onWorkspaceDelete={deleteWorkspace}
             onCollectionSelect={handleFileSelect}
             onCollectionDelete={removeItem}
             onCollectionRename={handleCollectionRename}
@@ -345,6 +394,14 @@ function App() {
       <VariablesDialog
         open={variablesDialogOpen}
         onOpenChange={setVariablesDialogOpen}
+      />
+
+      <WorkspaceDialog
+        open={workspaceDialogOpen}
+        onOpenChange={setWorkspaceDialogOpen}
+        mode={workspaceDialogMode}
+        initialData={editingWorkspace}
+        onSubmit={handleWorkspaceSubmit}
       />
 
       {/* Protocol Selection Dialog */}
