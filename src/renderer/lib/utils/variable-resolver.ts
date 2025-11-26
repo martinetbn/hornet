@@ -175,3 +175,26 @@ export function resolveGrpcVariables(
     data: resolveData(request.data),
   };
 }
+
+/**
+ * Recursively resolves [[variableName]] syntax in any data structure
+ * Handles strings, arrays, and objects recursively
+ */
+export function resolveDataRecursively(data: unknown, variables: Variable[]): unknown {
+  if (!variables || variables.length === 0) return data;
+
+  if (typeof data === 'string') {
+    return resolveVariables(data, variables);
+  }
+  if (Array.isArray(data)) {
+    return data.map(item => resolveDataRecursively(item, variables));
+  }
+  if (typeof data === 'object' && data !== null) {
+    const resolved: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      resolved[key] = resolveDataRecursively(value, variables);
+    }
+    return resolved;
+  }
+  return data;
+}

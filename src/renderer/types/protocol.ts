@@ -9,7 +9,7 @@ export type ConnectionStatus =
 
 export interface Connection {
   id: string;
-  protocol: 'websocket' | 'socketio' | 'grpc';
+  protocol: 'websocket' | 'socketio' | 'sse' | 'grpc';
   url: string;
   status: ConnectionStatus;
   connectedAt?: number;

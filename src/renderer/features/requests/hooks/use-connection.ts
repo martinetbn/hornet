@@ -1,15 +1,21 @@
-// Hook for managing connection-based protocols (WebSocket, Socket.IO)
+// Hook for managing connection-based protocols (WebSocket, Socket.IO, SSE)
 
 import { useAtom, useSetAtom, useAtomValue } from 'jotai';
 import { useCallback, useRef, useEffect } from 'react';
-import type { WebSocketConfig, SocketIOConfig } from '@/types';
+import type { WebSocketConfig, SocketIOConfig, SSEConfig, WebSocketMessage, SocketIOMessage } from '@/types';
 import type { ConnectionAdapter, Connection } from '@/types/protocol';
 import { createAdapter } from '@/lib/adapters';
 import { connectionsAtom, addMessageAtom } from '@/stores/connection-atoms';
 import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
-import { resolveWebSocketVariables, resolveSocketIOVariables } from '@/lib/utils/variable-resolver';
+import { 
+  resolveWebSocketVariables, 
+  resolveSocketIOVariables, 
+  resolveSSEVariables,
+  resolveVariables,
+  resolveDataRecursively
+} from '@/lib/utils/variable-resolver';
 
-type ConnectionConfig = WebSocketConfig | SocketIOConfig;
+type ConnectionConfig = WebSocketConfig | SocketIOConfig | SSEConfig;
 
 export function useConnection(connectionId: string, config: ConnectionConfig) {
   const [connections, setConnections] = useAtom(connectionsAtom);
@@ -90,8 +96,12 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
       let resolvedConfig;
       if (config.protocol === 'websocket') {
         resolvedConfig = resolveWebSocketVariables(config as WebSocketConfig, variables);
-      } else {
+      } else if (config.protocol === 'socketio') {
         resolvedConfig = resolveSocketIOVariables(config as SocketIOConfig, variables);
+      } else if (config.protocol === 'sse') {
+        resolvedConfig = resolveSSEVariables(config as SSEConfig, variables);
+      } else {
+        resolvedConfig = config;
       }
 
       const adapter = getAdapter();
@@ -146,15 +156,39 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
     }
   }, [connectionId, setConnections]);
 
-  // Send message
-  const sendMessage = useCallback(async (message: any) => {
+  // Send message with variable resolution
+  const sendMessage = useCallback(async (message: WebSocketMessage | SocketIOMessage) => {
     const adapter = adapterRef.current;
     if (!adapter) {
       throw new Error('Not connected');
     }
 
-    await adapter.send(message);
-  }, []);
+    // Resolve variables in the message before sending
+    let resolvedMessage: WebSocketMessage | SocketIOMessage;
+    
+    if ('event' in message) {
+      // Socket.IO message
+      const socketIOMessage = message as SocketIOMessage;
+      resolvedMessage = {
+        ...socketIOMessage,
+        event: resolveVariables(socketIOMessage.event, variables),
+        data: resolveDataRecursively(socketIOMessage.data, variables) as unknown[],
+      };
+    } else {
+      // WebSocket message
+      const wsMessage = message as WebSocketMessage;
+      // Only resolve variables if data is a string (not binary)
+      const resolvedData = typeof wsMessage.data === 'string'
+        ? resolveVariables(wsMessage.data, variables)
+        : wsMessage.data;
+      resolvedMessage = {
+        ...wsMessage,
+        data: resolvedData,
+      };
+    }
+
+    await adapter.send(resolvedMessage);
+  }, [variables]);
 
   // Cleanup on unmount
   useEffect(() => {
