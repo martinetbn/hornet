@@ -1,13 +1,13 @@
 // Root droppable components for collection tree
 
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable } from "@dnd-kit/core";
 
 export function RootTopDroppable({ overId }: { overId: string | null }) {
   const { setNodeRef } = useDroppable({
-    id: 'root-top',
+    id: "root-top",
   });
 
-  const isOverRootTop = overId === 'root-top';
+  const isOverRootTop = overId === "root-top";
 
   return (
     <div ref={setNodeRef} className="relative h-0">
@@ -26,10 +26,10 @@ export function RootDroppable({
   overId: string | null;
 }) {
   const { setNodeRef } = useDroppable({
-    id: 'root-droppable',
+    id: "root-droppable",
   });
 
-  const isOverRoot = overId === 'root-droppable';
+  const isOverRoot = overId === "root-droppable";
 
   return (
     <div ref={setNodeRef} className="relative min-h-[200px]">

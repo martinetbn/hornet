@@ -1,6 +1,6 @@
 // Dialog for creating a new folder in collections
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,9 +8,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CreateFolderDialogProps {
   open: boolean;
@@ -28,7 +28,7 @@ export function CreateFolderDialog({
   onCreate,
 }: CreateFolderDialogProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       onCreate();
     }
   };
@@ -38,7 +38,9 @@ export function CreateFolderDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Folder</DialogTitle>
-          <DialogDescription>Create a new folder to organize your requests</DialogDescription>
+          <DialogDescription>
+            Create a new folder to organize your requests
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -46,7 +48,9 @@ export function CreateFolderDialog({
             <Input
               id="folderName"
               value={folderName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFolderNameChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onFolderNameChange(e.target.value)
+              }
               placeholder="My API Collection"
               onKeyDown={handleKeyDown}
             />

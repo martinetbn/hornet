@@ -19,14 +19,16 @@ Server-Sent Events is a standard for real-time communication that allows servers
 ### 1. Type Definitions
 
 #### Protocol Type (`src/renderer/types/common.ts`)
+
 ```typescript
-export type ProtocolType = 'http' | 'websocket' | 'socketio' | 'grpc' | 'sse';
+export type ProtocolType = "http" | "websocket" | "socketio" | "grpc" | "sse";
 ```
 
 #### SSE Config (`src/renderer/types/request.ts`)
+
 ```typescript
 export interface SSEConfig extends BaseRequest {
-  protocol: 'sse';
+  protocol: "sse";
   url: string;
   headers?: KeyValuePair[];
   withCredentials?: boolean;
@@ -34,6 +36,7 @@ export interface SSEConfig extends BaseRequest {
 ```
 
 #### SSE Messages (`src/renderer/types/response.ts`)
+
 ```typescript
 export interface SSEEvent {
   id: string;
@@ -45,7 +48,7 @@ export interface SSEEvent {
 
 export interface SSEMessage {
   id: string;
-  type: 'event' | 'error' | 'connected' | 'disconnected';
+  type: "event" | "error" | "connected" | "disconnected";
   event?: SSEEvent;
   error?: string;
   timestamp: number;
@@ -59,8 +62,8 @@ Location: `src/renderer/lib/adapters/http-adapter.ts`
 The HTTP adapter now detects SSE endpoints by checking the `Content-Type` header:
 
 ```typescript
-const contentType = response.headers['content-type'] || '';
-const isSSE = contentType.includes('text/event-stream');
+const contentType = response.headers["content-type"] || "";
+const isSSE = contentType.includes("text/event-stream");
 ```
 
 When SSE is detected, the response includes an `isSSE: true` flag, triggering the upgrade UI.
@@ -72,6 +75,7 @@ Location: `src/renderer/lib/adapters/sse-adapter.ts`
 The SSE adapter implements the `ConnectionAdapter` interface and provides:
 
 **Key Features:**
+
 - Connection management (connect/disconnect)
 - Automatic event handling
 - Support for custom event types via `listenToEvent()`
@@ -79,11 +83,13 @@ The SSE adapter implements the `ConnectionAdapter` interface and provides:
 - Automatic error handling and reconnection (via browser's EventSource)
 
 **Important Limitations:**
+
 - Uses native `EventSource` API which only supports GET requests
 - Custom headers are converted to query parameters (browser limitation)
 - Cannot send messages to server (unidirectional only)
 
 **Methods:**
+
 - `connect(config)`: Establish SSE connection
 - `disconnect()`: Close the connection
 - `listenToEvent(eventType)`: Register listener for specific SSE event types
@@ -95,8 +101,11 @@ The SSE adapter implements the `ConnectionAdapter` interface and provides:
 Location: `src/renderer/stores/connection-atoms.ts`
 
 Updated to support SSE messages:
+
 ```typescript
-export const messagesAtom = atom<Map<string, (WebSocketMessage | SocketIOMessage | SSEMessage)[]>>(new Map());
+export const messagesAtom = atom<
+  Map<string, (WebSocketMessage | SocketIOMessage | SSEMessage)[]>
+>(new Map());
 ```
 
 ### 5. Connection Hook
@@ -106,12 +115,13 @@ Location: `src/renderer/features/requests/hooks/use-connection.ts`
 New hook for managing connection-based protocols (SSE, WebSocket, Socket.IO):
 
 **API:**
+
 ```typescript
 const {
-  connection,        // Connection state
-  connect,           // Establish connection
-  disconnect,        // Close connection
-  sendMessage,       // Send message (not for SSE)
+  connection, // Connection state
+  connect, // Establish connection
+  disconnect, // Close connection
+  sendMessage, // Send message (not for SSE)
   listenToSSEEvent, // Register SSE event listener
 } = useConnection(connectionId, config);
 ```
@@ -119,9 +129,11 @@ const {
 ### 6. UI Components
 
 #### SSE Builder
+
 Location: `src/renderer/features/requests/components/sse-builder.tsx`
 
 New SSE request builder with:
+
 - URL input
 - Connect/Disconnect buttons with status indicators
 - Headers editor (sent as query params)
@@ -131,9 +143,11 @@ New SSE request builder with:
 - SSE information panel
 
 #### Response Viewer Upgrade
+
 Location: `src/renderer/features/responses/components/response-viewer.tsx`
 
 Added SSE detection banner that appears when `Content-Type: text/event-stream` is detected:
+
 - Blue banner with "Server-Sent Events Detected" message
 - "Connect to Stream" button to upgrade the connection
 - Automatic UI switch when upgraded
@@ -143,6 +157,7 @@ Added SSE detection banner that appears when `Content-Type: text/event-stream` i
 Location: `src/renderer/app.tsx`
 
 **Changes:**
+
 1. Added protocol selection dialog when creating new requests
 2. Conditional rendering of appropriate builder based on protocol
 3. Support for SSE in tab management
@@ -151,6 +166,7 @@ Location: `src/renderer/app.tsx`
 
 **New Dialog:**
 Users can now choose between:
+
 - HTTP / REST (traditional request/response)
 - Server-Sent Events (real-time streaming)
 
@@ -182,6 +198,7 @@ You can also manually create an SSE connection:
 ### Event Format
 
 SSE events follow this format:
+
 ```
 event: eventName
 data: event data
@@ -189,6 +206,7 @@ id: event-id
 ```
 
 The adapter automatically parses this format and displays:
+
 - Event type
 - Event data
 - Event ID
@@ -197,14 +215,16 @@ The adapter automatically parses this format and displays:
 ### Custom Event Types
 
 To listen for specific SSE event types:
+
 ```typescript
 const { listenToSSEEvent } = useConnection(id, config);
-listenToSSEEvent('customEvent');
+listenToSSEEvent("customEvent");
 ```
 
 ## Browser Compatibility
 
 SSE is supported in all modern browsers via the EventSource API:
+
 - Chrome/Edge: ✓
 - Firefox: ✓
 - Safari: ✓
@@ -231,13 +251,13 @@ Test SSE implementation with these public endpoints:
 
 ## Differences from WebSocket
 
-| Feature | SSE | WebSocket |
-|---------|-----|-----------|
-| Direction | Unidirectional (server→client) | Bidirectional |
-| Protocol | HTTP/HTTPS | ws:// or wss:// |
-| Reconnection | Automatic | Manual |
-| Browser Support | EventSource API | WebSocket API |
-| Use Case | Server push notifications | Real-time chat, gaming |
+| Feature         | SSE                            | WebSocket              |
+| --------------- | ------------------------------ | ---------------------- |
+| Direction       | Unidirectional (server→client) | Bidirectional          |
+| Protocol        | HTTP/HTTPS                     | ws:// or wss://        |
+| Reconnection    | Automatic                      | Manual                 |
+| Browser Support | EventSource API                | WebSocket API          |
+| Use Case        | Server push notifications      | Real-time chat, gaming |
 
 ## Limitations
 
@@ -276,12 +296,14 @@ To test SSE implementation:
 ## Files Modified/Created
 
 ### Created:
+
 - `src/renderer/lib/adapters/sse-adapter.ts`
 - `src/renderer/features/requests/hooks/use-connection.ts`
 - `src/renderer/features/requests/components/sse-builder.tsx`
 - `docs/SSE_IMPLEMENTATION.md`
 
 ### Modified:
+
 - `src/renderer/types/common.ts` - Added 'sse' to ProtocolType
 - `src/renderer/types/request.ts` - Added SSEConfig interface
 - `src/renderer/types/response.ts` - Added SSEEvent and SSEMessage interfaces

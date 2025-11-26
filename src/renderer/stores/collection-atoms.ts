@@ -1,15 +1,15 @@
-import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import { electronStorage } from '@/lib/adapters/electron-storage';
-import type { CollectionFolder, Tab, CollectionItem } from '@/types/collection';
-import type { HttpRequest } from '@/types/request';
-import type { HttpMethod } from '@/types/common';
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { electronStorage } from "@/lib/adapters/electron-storage";
+import type { CollectionFolder, Tab, CollectionItem } from "@/types/collection";
+import type { HttpRequest } from "@/types/request";
+import type { HttpMethod } from "@/types/common";
 
 // Legacy RequestConfig for backward compatibility during migration
 interface LegacyRequestConfig {
   id: string;
   name: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   url: string;
   headers?: Record<string, string>;
   body?: string;
@@ -17,12 +17,14 @@ interface LegacyRequestConfig {
 }
 
 // Migration function to convert legacy RequestConfig to HttpRequest
-export const migrateRequestConfig = (legacy: LegacyRequestConfig): HttpRequest => {
+export const migrateRequestConfig = (
+  legacy: LegacyRequestConfig,
+): HttpRequest => {
   const now = Date.now();
   return {
     id: legacy.id,
     name: legacy.name,
-    protocol: 'http' as const,
+    protocol: "http" as const,
     method: legacy.method as HttpMethod,
     url: legacy.url,
     headers: legacy.headers
@@ -41,7 +43,7 @@ export const migrateRequestConfig = (legacy: LegacyRequestConfig): HttpRequest =
       : undefined,
     body: legacy.body
       ? {
-          type: 'json' as const,
+          type: "json" as const,
           content: legacy.body,
         }
       : undefined,
@@ -54,19 +56,19 @@ export const migrateRequestConfig = (legacy: LegacyRequestConfig): HttpRequest =
 const isLegacyRequest = (item: any): item is LegacyRequestConfig => {
   return (
     item &&
-    typeof item === 'object' &&
-    'id' in item &&
-    'name' in item &&
-    'method' in item &&
-    'url' in item &&
-    !('protocol' in item)
+    typeof item === "object" &&
+    "id" in item &&
+    "name" in item &&
+    "method" in item &&
+    "url" in item &&
+    !("protocol" in item)
   );
 };
 
 // Helper to migrate collections
 const migrateCollections = (collections: any[]): CollectionItem[] => {
   return collections.map((item) => {
-    if (item.type === 'folder') {
+    if (item.type === "folder") {
       return {
         ...item,
         children: migrateCollectionItems(item.children || []),
@@ -79,7 +81,7 @@ const migrateCollections = (collections: any[]): CollectionItem[] => {
 // Helper to migrate collection items
 const migrateCollectionItems = (items: any[]): CollectionItem[] => {
   return items.map((item) => {
-    if (item.type === 'folder') {
+    if (item.type === "folder") {
       return {
         ...item,
         children: migrateCollectionItems(item.children || []),
@@ -93,12 +95,17 @@ const migrateCollectionItems = (items: any[]): CollectionItem[] => {
 export type { CollectionFolder, Tab, CollectionItem, HttpRequest };
 
 // Create a migrating storage wrapper that applies migration on read
-const migratingCollectionStorage = (): ReturnType<typeof electronStorage<CollectionItem[]>> => {
+const migratingCollectionStorage = (): ReturnType<
+  typeof electronStorage<CollectionItem[]>
+> => {
   const baseStorage = electronStorage<CollectionItem[]>();
 
   return {
     ...baseStorage,
-    getItem: async (key: string, initialValue: CollectionItem[]): Promise<CollectionItem[]> => {
+    getItem: async (
+      key: string,
+      initialValue: CollectionItem[],
+    ): Promise<CollectionItem[]> => {
       const value = await baseStorage.getItem(key, initialValue);
       // Apply migration to convert legacy requests to HttpRequest
       return migrateCollections(value);
@@ -108,10 +115,10 @@ const migratingCollectionStorage = (): ReturnType<typeof electronStorage<Collect
 
 // Persistent atom for collections using Electron storage with migration
 export const collectionsAtom = atomWithStorage<CollectionItem[]>(
-  'collections',
+  "collections",
   [],
   migratingCollectionStorage(),
-  { getOnInit: true }
+  { getOnInit: true },
 );
 
 // Atom for tabs (not persisted, as tabs are session-specific)
@@ -121,4 +128,5 @@ export const tabsAtom = atom<Tab[]>([]);
 export const activeTabIdAtom = atom<string | null>(null);
 
 // Helper function to generate unique IDs
-export const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+export const generateId = () =>
+  `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

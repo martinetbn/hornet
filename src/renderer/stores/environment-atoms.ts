@@ -1,17 +1,17 @@
 // Environment-related state atoms
 
-import { atom } from 'jotai';
-import { atomWithStorage, loadable } from 'jotai/utils';
-import type { Environment, Variable } from '@/types';
-import { electronStorage } from '@/lib/adapters/electron-storage';
-import { activeWorkspaceIdAtom } from '@/stores/workspace-atoms';
+import { atom } from "jotai";
+import { atomWithStorage, loadable } from "jotai/utils";
+import type { Environment, Variable } from "@/types";
+import { electronStorage } from "@/lib/adapters/electron-storage";
+import { activeWorkspaceIdAtom } from "@/stores/workspace-atoms";
 
 // Global variables persisted to disk
 export const variablesAtom = atomWithStorage<Variable[]>(
-  'variables',
+  "variables",
   [],
   electronStorage<Variable[]>(),
-  { getOnInit: true }
+  { getOnInit: true },
 );
 
 const loadableVariablesAtom = loadable(variablesAtom);
@@ -23,7 +23,10 @@ export const activeWorkspaceVariablesAtom = atom((get) => {
   const activeWorkspaceId = get(activeWorkspaceIdAtom);
 
   // Handle initial async loading state
-  if (loadableVariables.state !== 'hasData' || !Array.isArray(loadableVariables.data)) {
+  if (
+    loadableVariables.state !== "hasData" ||
+    !Array.isArray(loadableVariables.data)
+  ) {
     return [];
   }
 
@@ -36,7 +39,7 @@ export const activeWorkspaceVariablesAtom = atom((get) => {
       return v.workspaceId === activeWorkspaceId;
     }
     // Legacy variables (no workspaceId) belong to default workspace
-    return activeWorkspaceId === 'default';
+    return activeWorkspaceId === "default";
   });
 });
 
@@ -49,8 +52,10 @@ export const resolveVariablesAtom = atom(
     if (!variables || variables.length === 0) return text;
 
     return text.replace(/\[\[(\w+)\]\]/g, (match, key) => {
-      const variable = variables.find((v: Variable) => v.key === key && v.enabled !== false);
+      const variable = variables.find(
+        (v: Variable) => v.key === key && v.enabled !== false,
+      );
       return variable ? variable.value : match;
     });
-  }
+  },
 );

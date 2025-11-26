@@ -1,10 +1,10 @@
 // Reusable key-value editor for headers and params
 
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { X } from 'lucide-react';
-import type { KeyValuePair } from '@/types';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X } from "lucide-react";
+import type { KeyValuePair } from "@/types";
 
 interface KeyValueEditorProps {
   title: string;
@@ -19,19 +19,29 @@ export function KeyValueEditor({
   title,
   items,
   onItemsChange,
-  keyPlaceholder = 'Key',
-  valuePlaceholder = 'Value',
+  keyPlaceholder = "Key",
+  valuePlaceholder = "Value",
   disabled = false,
 }: KeyValueEditorProps) {
-  const handleChange = (index: number, field: 'key' | 'value', value: string) => {
+  const handleChange = (
+    index: number,
+    field: "key" | "value",
+    value: string,
+  ) => {
     const newItems = [...items];
-    newItems[index] = { key: '', value: '', enabled: true, ...newItems[index], [field]: value };
+    newItems[index] = {
+      key: "",
+      value: "",
+      enabled: true,
+      ...newItems[index],
+      [field]: value,
+    };
 
     // Auto-add a new empty item if this is the last one and user is typing
     const isLastItem = index === newItems.length - 1;
     const updatedItem = newItems[index];
     if (isLastItem && (updatedItem.key || updatedItem.value)) {
-      newItems.push({ key: '', value: '', enabled: true });
+      newItems.push({ key: "", value: "", enabled: true });
     }
 
     onItemsChange(newItems);
@@ -41,7 +51,7 @@ export function KeyValueEditor({
     const newItems = items.filter((_, i) => i !== index);
     // Ensure we always have at least one empty item
     if (newItems.length === 0) {
-      newItems.push({ key: '', value: '', enabled: true });
+      newItems.push({ key: "", value: "", enabled: true });
     }
     onItemsChange(newItems);
   };
@@ -56,9 +66,8 @@ export function KeyValueEditor({
   };
 
   // Ensure we always have at least one empty item
-  const displayItems = items && items.length > 0
-    ? items
-    : [{ key: '', value: '', enabled: true }];
+  const displayItems =
+    items && items.length > 0 ? items : [{ key: "", value: "", enabled: true }];
 
   return (
     <div className="rounded-lg border p-4">
@@ -77,27 +86,31 @@ export function KeyValueEditor({
               <Checkbox
                 checked={item.enabled !== false}
                 onCheckedChange={() => handleToggle(index)}
-                className='mt-4'
+                className="mt-4"
                 disabled={disabled}
               />
-              <div className='flex flex-col items-start gap-1 w-full'>
-                <span className='text-xs font-medium text-muted-foreground'>Key</span>
+              <div className="flex flex-col items-start gap-1 w-full">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Key
+                </span>
                 <Input
                   value={item.key}
-                  onChange={(e) => handleChange(index, 'key', e.target.value)}
+                  onChange={(e) => handleChange(index, "key", e.target.value)}
                   placeholder={keyPlaceholder}
                   disabled={disabled || item.enabled === false}
-                  className='w-full'
+                  className="w-full"
                 />
               </div>
-              <div className='flex flex-col items-start gap-1 w-full'>
-                <span className='text-xs font-medium text-muted-foreground'>Value</span>
+              <div className="flex flex-col items-start gap-1 w-full">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Value
+                </span>
                 <Input
                   value={item.value}
-                  onChange={(e) => handleChange(index, 'value', e.target.value)}
+                  onChange={(e) => handleChange(index, "value", e.target.value)}
                   placeholder={valuePlaceholder}
                   disabled={disabled || item.enabled === false}
-                  className='w-full'
+                  className="w-full"
                 />
               </div>
               <Button
@@ -105,7 +118,7 @@ export function KeyValueEditor({
                 size="icon"
                 onClick={() => handleRemove(index)}
                 className="size-8 mt-4"
-                style={{ visibility: shouldShowDelete ? 'visible' : 'hidden' }}
+                style={{ visibility: shouldShowDelete ? "visible" : "hidden" }}
                 disabled={disabled || !shouldShowDelete}
               >
                 <X className="size-4" />

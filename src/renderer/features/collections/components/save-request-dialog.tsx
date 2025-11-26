@@ -1,6 +1,6 @@
 // Dialog for saving a request to a collection folder
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,16 +8,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import type { CollectionFolder } from '@/stores/collection-atoms';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import type { CollectionFolder } from "@/stores/collection-atoms";
 
 interface SaveRequestDialogProps {
   open: boolean;
@@ -43,7 +43,9 @@ export function SaveRequestDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save Request</DialogTitle>
-          <DialogDescription>Save "{requestName}" to your collections</DialogDescription>
+          <DialogDescription>
+            Save "{requestName}" to your collections
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">

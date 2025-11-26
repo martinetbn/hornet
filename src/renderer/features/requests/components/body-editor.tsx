@@ -1,21 +1,21 @@
 // Body editor component for HTTP requests
 
-import { useMemo, useEffect, useState, useRef, useCallback } from 'react';
+import { useMemo, useEffect, useState, useRef, useCallback } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
-import { html } from '@codemirror/lang-html';
-import { xml } from '@codemirror/lang-xml';
-import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
-import type { HttpRequest } from '@/types';
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { html } from "@codemirror/lang-html";
+import { xml } from "@codemirror/lang-xml";
+import { useCodeMirrorTheme } from "@/lib/hooks/use-codemirror-theme";
+import type { HttpRequest } from "@/types";
 
 interface BodyEditorProps {
   request: HttpRequest;
@@ -23,7 +23,9 @@ interface BodyEditorProps {
 }
 
 export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
-  const [localBodyContent, setLocalBodyContent] = useState(request.body?.content || '');
+  const [localBodyContent, setLocalBodyContent] = useState(
+    request.body?.content || "",
+  );
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const requestRef = useRef(request);
   const onRequestChangeRef = useRef(onRequestChange);
@@ -36,8 +38,8 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
     basicSetup,
     wrapperClass,
   } = useCodeMirrorTheme({
-    styleId: 'codemirror-body-editor-theme',
-    wrapperClass: 'codemirror-wrapper',
+    styleId: "codemirror-body-editor-theme",
+    wrapperClass: "codemirror-wrapper",
   });
 
   // Keep refs up to date
@@ -48,7 +50,7 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
 
   // Sync local state when request changes from outside
   useEffect(() => {
-    const newContent = request.body?.content || '';
+    const newContent = request.body?.content || "";
     if (!debounceTimerRef.current) {
       setLocalBodyContent(newContent);
     }
@@ -76,7 +78,7 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
 
       changeHandler?.({
         ...currentRequest,
-        body: { type: currentRequest.body?.type || 'json', content },
+        body: { type: currentRequest.body?.type || "json", content },
         updatedAt: Date.now(),
       });
     }, 500);
@@ -91,7 +93,7 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
       ...request,
       body: {
         type: type as any,
-        content: localBodyContent
+        content: localBodyContent,
       },
       updatedAt: Date.now(),
     });
@@ -101,11 +103,11 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
   const languageExtensions = useMemo(() => {
     const lang = (() => {
       switch (request.body?.type) {
-        case 'json':
+        case "json":
           return json();
-        case 'html':
+        case "html":
           return html();
-        case 'xml':
+        case "xml":
           return xml();
         default:
           return null;
@@ -123,13 +125,15 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
 
       {/* Body Type Selection */}
       <RadioGroup
-        value={request.body?.type === 'none' || !request.body?.type ? 'none' : 'raw'}
+        value={
+          request.body?.type === "none" || !request.body?.type ? "none" : "raw"
+        }
         onValueChange={(value) => {
-          if (value === 'none') {
-            handleBodyTypeChange('none');
+          if (value === "none") {
+            handleBodyTypeChange("none");
           } else {
-            if (request.body?.type === 'none' || !request.body?.type) {
-              handleBodyTypeChange('json');
+            if (request.body?.type === "none" || !request.body?.type) {
+              handleBodyTypeChange("json");
             }
           }
         }}
@@ -137,16 +141,20 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="none" id="body-none" />
-          <Label htmlFor="body-none" className="cursor-pointer">None</Label>
+          <Label htmlFor="body-none" className="cursor-pointer">
+            None
+          </Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="raw" id="body-raw" />
-          <Label htmlFor="body-raw" className="cursor-pointer">Raw</Label>
+          <Label htmlFor="body-raw" className="cursor-pointer">
+            Raw
+          </Label>
         </div>
       </RadioGroup>
 
       {/* Raw Body Options */}
-      {(request.body?.type !== 'none' && request.body?.type) && (
+      {request.body?.type !== "none" && request.body?.type && (
         <>
           <div className="mb-4">
             <Select
@@ -169,7 +177,11 @@ export function BodyEditor({ request, onRequestChange }: BodyEditorProps) {
             <CodeMirror
               value={localBodyContent}
               onChange={handleBodyChange}
-              extensions={[...languageExtensions, customTheme, customHighlighting]}
+              extensions={[
+                ...languageExtensions,
+                customTheme,
+                customHighlighting,
+              ]}
               height="200px"
               basicSetup={basicSetup}
               style={editorStyle}

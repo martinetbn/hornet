@@ -1,21 +1,21 @@
 // Main application header component
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Save, Moon, Sun, Monitor, Check } from 'lucide-react';
-import { TabBar } from '@/features/requests/components';
-import type { Tab } from '@/stores/collection-atoms';
-import type { ThemePreference } from '@/stores/theme-atoms';
+} from "@/components/ui/dropdown-menu";
+import { Save, Moon, Sun, Monitor, Check } from "lucide-react";
+import { TabBar } from "@/features/requests/components";
+import type { Tab } from "@/stores/collection-atoms";
+import type { ThemePreference } from "@/stores/theme-atoms";
 
 interface AppHeaderProps {
   tabs: Tab[];
   activeTabId: string | null;
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   themePreference: ThemePreference;
   onTabSelect: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
@@ -38,13 +38,18 @@ export function AppHeader({
   canSave = false,
 }: AppHeaderProps) {
   const getThemeIcon = () => {
-    if (themePreference === 'system') return <Monitor className="size-4 mr-2" />;
-    return theme === 'light' ? <Sun className="size-4 mr-2" /> : <Moon className="size-4 mr-2" />;
+    if (themePreference === "system")
+      return <Monitor className="size-4 mr-2" />;
+    return theme === "light" ? (
+      <Sun className="size-4 mr-2" />
+    ) : (
+      <Moon className="size-4 mr-2" />
+    );
   };
 
   const getThemeLabel = () => {
-    if (themePreference === 'system') return 'System';
-    return theme === 'light' ? 'Light' : 'Dark';
+    if (themePreference === "system") return "System";
+    return theme === "light" ? "Light" : "Dark";
   };
 
   return (
@@ -73,20 +78,26 @@ export function AppHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onThemeChange('light')}>
+              <DropdownMenuItem onClick={() => onThemeChange("light")}>
                 <Sun className="size-4 mr-2" />
                 Light
-                {themePreference === 'light' && <Check className="size-4 ml-auto" />}
+                {themePreference === "light" && (
+                  <Check className="size-4 ml-auto" />
+                )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onThemeChange('dark')}>
+              <DropdownMenuItem onClick={() => onThemeChange("dark")}>
                 <Moon className="size-4 mr-2" />
                 Dark
-                {themePreference === 'dark' && <Check className="size-4 ml-auto" />}
+                {themePreference === "dark" && (
+                  <Check className="size-4 ml-auto" />
+                )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onThemeChange('system')}>
+              <DropdownMenuItem onClick={() => onThemeChange("system")}>
                 <Monitor className="size-4 mr-2" />
                 System
-                {themePreference === 'system' && <Check className="size-4 ml-auto" />}
+                {themePreference === "system" && (
+                  <Check className="size-4 ml-auto" />
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

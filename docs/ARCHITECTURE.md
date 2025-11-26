@@ -7,15 +7,19 @@ Hornet is a multi-protocol API client built with Electron, React, and Tailwind C
 ## Architecture Principles
 
 ### 1. **Separation of Concerns**
+
 Each layer has a single, well-defined responsibility with clear boundaries.
 
 ### 2. **Unidirectional Data Flow**
+
 State flows down through components, actions flow up through callbacks and state updates.
 
 ### 3. **Protocol Agnostic Core**
+
 Business logic is independent of protocol implementation details.
 
 ### 4. **Type Safety**
+
 TypeScript throughout ensures compile-time safety and better developer experience.
 
 ## Layer Architecture
@@ -68,7 +72,9 @@ TypeScript throughout ensures compile-time safety and better developer experienc
 ## Key Concepts
 
 ### Requests
+
 A request represents a single API call configuration including:
+
 - Protocol type (HTTP, WS, Socket.IO, gRPC)
 - Endpoint/URL
 - Headers, parameters, body
@@ -76,17 +82,21 @@ A request represents a single API call configuration including:
 - Pre-request scripts (future)
 
 ### Collections
+
 Collections organize related requests into hierarchical folders, similar to Postman workspaces.
 
 ### Environments
+
 Environments store variables (like API keys, base URLs) that can be referenced in requests using `{{variable}}` syntax.
 
 ### Connections
+
 Active protocol connections (WebSocket, Socket.IO, gRPC streams) that maintain state beyond a single request/response.
 
 ## Data Flow Examples
 
 ### HTTP Request Flow
+
 ```
 1. User clicks "Send" in RequestBuilder component
 2. Component calls useRequest hook's send() function
@@ -99,6 +109,7 @@ Active protocol connections (WebSocket, Socket.IO, gRPC streams) that maintain s
 ```
 
 ### WebSocket Connection Flow
+
 ```
 1. User clicks "Connect" in RequestBuilder component
 2. Component calls useConnection hook's connect() function
@@ -114,30 +125,35 @@ Active protocol connections (WebSocket, Socket.IO, gRPC streams) that maintain s
 ## Technology Stack
 
 ### Core
+
 - **Electron**: Desktop app framework
 - **React 19**: UI library
 - **TypeScript**: Type safety
 - **Tailwind CSS 4**: Styling
 
 ### State Management
+
 - **Jotai**: Atomic state management
   - Lightweight and performant
   - Perfect for modular state
   - Great TypeScript support
 
 ### Protocol Libraries
+
 - **HTTP**: axios (with fetch fallback)
 - **WebSocket**: native WebSocket API
 - **Socket.IO**: socket.io-client
 - **gRPC**: @grpc/grpc-js + @grpc/proto-loader
 
 ### Utilities
+
 - **nanoid**: Unique ID generation
 - **uuid**: UUID generation for compatibility
 
 ## Design Patterns
 
 ### 1. **Adapter Pattern**
+
 Each protocol has an adapter that implements a common interface, making it easy to add new protocols.
 
 ```typescript
@@ -148,17 +164,21 @@ interface ProtocolAdapter<TConfig, TResponse> {
 ```
 
 ### 2. **Repository Pattern**
+
 Data persistence is abstracted through repository interfaces, allowing easy switching of storage mechanisms.
 
 ### 3. **Factory Pattern**
+
 Protocol adapters are created through factories based on request type.
 
 ### 4. **Observer Pattern**
+
 Long-lived connections (WS, Socket.IO) use observers to emit events to subscribers.
 
 ## Extension Points
 
 ### Adding a New Protocol
+
 1. Create adapter in `src/renderer/lib/adapters/`
 2. Implement protocol interface
 3. Add protocol type to types
@@ -166,6 +186,7 @@ Long-lived connections (WS, Socket.IO) use observers to emit events to subscribe
 5. Add UI support in RequestBuilder
 
 ### Adding a New Feature
+
 1. Define types in `src/renderer/types/`
 2. Create Jotai atoms in `src/renderer/stores/`
 3. Create custom hooks in `src/renderer/lib/hooks/`
@@ -174,43 +195,54 @@ Long-lived connections (WS, Socket.IO) use observers to emit events to subscribe
 ## Security Considerations
 
 ### Content Security Policy
+
 Strict CSP prevents XSS attacks and unauthorized resource loading.
 
 ### Context Isolation
+
 Electron's context isolation prevents renderer from accessing Node.js APIs directly.
 
 ### IPC Communication
+
 All main process communication goes through secure IPC channels defined in preload script.
 
 ### Sensitive Data
+
 API keys and tokens are encrypted at rest using Electron's safeStorage API.
 
 ## Performance Considerations
 
 ### Code Splitting
+
 Features are lazy-loaded to reduce initial bundle size.
 
 ### Virtual Scrolling
+
 Large request lists and responses use virtual scrolling for performance.
 
 ### Debouncing
+
 User input is debounced to prevent excessive re-renders and API calls.
 
 ### Memoization
+
 Expensive computations are memoized using React.memo and useMemo.
 
 ## Testing Strategy
 
 ### Unit Tests
+
 - Protocol adapters
 - Utility functions
 - Custom hooks (with React Testing Library)
 
 ### Integration Tests
+
 - Feature workflows (create request, send, view response)
 - State management integration
 
 ### E2E Tests
+
 - Critical user paths
 - Cross-protocol scenarios
 

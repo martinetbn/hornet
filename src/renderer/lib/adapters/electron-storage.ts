@@ -1,4 +1,4 @@
-import type { AsyncStorage } from 'jotai/vanilla/utils/atomWithStorage';
+import type { AsyncStorage } from "jotai/vanilla/utils/atomWithStorage";
 
 /**
  * Custom storage adapter for Jotai that uses Electron's IPC for persistence
@@ -9,7 +9,7 @@ export const electronStorage = <T>(): AsyncStorage<T> => ({
       const value = await window.electronAPI.storage.get(key);
       return value !== null && value !== undefined ? value : initialValue;
     } catch (error) {
-      console.error('Error getting item from storage:', error);
+      console.error("Error getting item from storage:", error);
       return initialValue;
     }
   },
@@ -18,7 +18,7 @@ export const electronStorage = <T>(): AsyncStorage<T> => ({
     try {
       await window.electronAPI.storage.set(key, value);
     } catch (error) {
-      console.error('Error setting item in storage:', error);
+      console.error("Error setting item in storage:", error);
     }
   },
 
@@ -26,7 +26,7 @@ export const electronStorage = <T>(): AsyncStorage<T> => ({
     try {
       await window.electronAPI.storage.delete(key);
     } catch (error) {
-      console.error('Error removing item from storage:', error);
+      console.error("Error removing item from storage:", error);
     }
   },
 });

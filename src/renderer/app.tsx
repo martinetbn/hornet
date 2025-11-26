@@ -1,41 +1,59 @@
 // Main application component - composition layer
 
-import { useState } from 'react';
-import { createRoot } from 'react-dom/client';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { Plus, Globe, Zap, Plug, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { createRoot } from "react-dom/client";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { Plus, Globe, Zap, Plug, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+} from "@/components/ui/dialog";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from '@/components/ui/resizable';
-import { AppSidebar, AppHeader } from '@/components/layout';
-import { RequestBuilder, GrpcBuilder, WebSocketBuilder, SocketIOBuilder, SSEBuilder } from '@/features/requests/components';
-import { ResponseViewer } from '@/features/responses/components';
+} from "@/components/ui/resizable";
+import { AppSidebar, AppHeader } from "@/components/layout";
+import {
+  RequestBuilder,
+  GrpcBuilder,
+  WebSocketBuilder,
+  SocketIOBuilder,
+  SSEBuilder,
+} from "@/features/requests/components";
+import { ResponseViewer } from "@/features/responses/components";
 import {
   useCollection,
   useTabs,
   useCollectionDragDrop,
   useSaveRequest,
-} from '@/features/collections/hooks';
-import { SaveRequestDialog, CreateFolderDialog } from '@/features/collections/components';
-import { VariablesDialog } from '@/features/variables/components';
-import { WorkspaceDialog } from '@/features/workspaces/components/workspace-dialog';
-import { useKeyboardShortcuts } from '@/features/requests/hooks';
-import { useTheme } from '@/features/settings/hooks';
-import type { HttpRequest, GrpcRequest, WebSocketConfig, SocketIOConfig, SSEConfig, Request, CollectionItem, Tab } from '@/types';
-import type { Workspace } from '@/types/workspace';
-import { generateId } from '@/stores/collection-atoms';
-import { sidebarWidthAtom } from '@/stores/sidebar-atoms';
+} from "@/features/collections/hooks";
+import {
+  SaveRequestDialog,
+  CreateFolderDialog,
+} from "@/features/collections/components";
+import { VariablesDialog } from "@/features/variables/components";
+import { WorkspaceDialog } from "@/features/workspaces/components/workspace-dialog";
+import { useKeyboardShortcuts } from "@/features/requests/hooks";
+import { useTheme } from "@/features/settings/hooks";
+import type {
+  HttpRequest,
+  GrpcRequest,
+  WebSocketConfig,
+  SocketIOConfig,
+  SSEConfig,
+  Request,
+  CollectionItem,
+  Tab,
+} from "@/types";
+import type { Workspace } from "@/types/workspace";
+import { generateId } from "@/stores/collection-atoms";
+import { sidebarWidthAtom } from "@/stores/sidebar-atoms";
 import {
   workspacesAtom,
   activeWorkspaceAtom,
@@ -43,15 +61,17 @@ import {
   updateWorkspaceAtom,
   deleteWorkspaceAtom,
   activeWorkspaceIdAtom,
-} from '@/stores/workspace-atoms';
+} from "@/stores/workspace-atoms";
 
 function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
   const [variablesDialogOpen, setVariablesDialogOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
+  const [newFolderName, setNewFolderName] = useState("");
+  const [selectedFolderId, setSelectedFolderId] = useState<
+    string | undefined
+  >();
 
   // Workspace management
   const activeWorkspace = useAtomValue(activeWorkspaceAtom);
@@ -62,11 +82,15 @@ function App() {
   const deleteWorkspace = useSetAtom(deleteWorkspaceAtom);
 
   const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
-  const [workspaceDialogMode, setWorkspaceDialogMode] = useState<'create' | 'edit'>('create');
-  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [workspaceDialogMode, setWorkspaceDialogMode] = useState<
+    "create" | "edit"
+  >("create");
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
+    null,
+  );
 
   const handleWorkspaceSubmit = (name: string) => {
-    if (workspaceDialogMode === 'create') {
+    if (workspaceDialogMode === "create") {
       createWorkspace(name);
     } else if (editingWorkspace) {
       updateWorkspace({ id: editingWorkspace.id, name });
@@ -75,13 +99,13 @@ function App() {
   };
 
   const openCreateWorkspace = () => {
-    setWorkspaceDialogMode('create');
+    setWorkspaceDialogMode("create");
     setEditingWorkspace(null);
     setWorkspaceDialogOpen(true);
   };
 
   const openEditWorkspace = (workspace: Workspace) => {
-    setWorkspaceDialogMode('edit');
+    setWorkspaceDialogMode("edit");
     setEditingWorkspace(workspace);
     setWorkspaceDialogOpen(true);
   };
@@ -106,7 +130,16 @@ function App() {
   } = useCollection();
 
   // Tab management
-  const { tabs, activeTab, activeTabId, setActiveTabId, openTab, closeTab, updateTab, createNewTab } = useTabs();
+  const {
+    tabs,
+    activeTab,
+    activeTabId,
+    setActiveTabId,
+    openTab,
+    closeTab,
+    updateTab,
+    createNewTab,
+  } = useTabs();
 
   // Use custom hooks for business logic
   const { handleSave, handleSaveToFolder } = useSaveRequest({
@@ -137,52 +170,54 @@ function App() {
     setProtocolDialogOpen(true);
   };
 
-  const handleProtocolSelect = (protocol: 'http' | 'grpc' | 'websocket' | 'socketio' | 'sse') => {
+  const handleProtocolSelect = (
+    protocol: "http" | "grpc" | "websocket" | "socketio" | "sse",
+  ) => {
     const now = Date.now();
     const id = generateId();
 
     let newRequest: Request;
 
-    if (protocol === 'grpc') {
+    if (protocol === "grpc") {
       const grpcRequest: GrpcRequest = {
         id,
-        name: 'New gRPC Request',
-        protocol: 'grpc',
-        url: 'localhost:50051',
-        protoFile: '',
-        method: '',
+        name: "New gRPC Request",
+        protocol: "grpc",
+        url: "localhost:50051",
+        protoFile: "",
+        method: "",
         data: {},
         createdAt: now,
         updatedAt: now,
       };
       newRequest = grpcRequest;
-    } else if (protocol === 'websocket') {
+    } else if (protocol === "websocket") {
       const wsRequest: WebSocketConfig = {
         id,
-        name: 'New WebSocket Connection',
-        protocol: 'websocket',
-        url: 'wss://echo.websocket.org',
+        name: "New WebSocket Connection",
+        protocol: "websocket",
+        url: "wss://echo.websocket.org",
         createdAt: now,
         updatedAt: now,
       };
       newRequest = wsRequest;
-    } else if (protocol === 'socketio') {
+    } else if (protocol === "socketio") {
       const socketioRequest: SocketIOConfig = {
         id,
-        name: 'New Socket.IO Connection',
-        protocol: 'socketio',
-        url: 'http://localhost:3000',
-        path: '/socket.io',
+        name: "New Socket.IO Connection",
+        protocol: "socketio",
+        url: "http://localhost:3000",
+        path: "/socket.io",
         createdAt: now,
         updatedAt: now,
       };
       newRequest = socketioRequest;
-    } else if (protocol === 'sse') {
+    } else if (protocol === "sse") {
       const sseRequest: SSEConfig = {
         id,
-        name: 'New SSE Connection',
-        protocol: 'sse',
-        url: 'http://localhost:3000/events',
+        name: "New SSE Connection",
+        protocol: "sse",
+        url: "http://localhost:3000/events",
         createdAt: now,
         updatedAt: now,
       };
@@ -190,10 +225,10 @@ function App() {
     } else {
       const httpRequest: HttpRequest = {
         id,
-        name: 'New HTTP Request',
-        protocol: 'http',
-        method: 'GET',
-        url: 'https://api.example.com',
+        name: "New HTTP Request",
+        protocol: "http",
+        method: "GET",
+        url: "https://api.example.com",
         createdAt: now,
         updatedAt: now,
       };
@@ -208,13 +243,14 @@ function App() {
     if (newFolderName.trim()) {
       createFolder(newFolderName.trim());
       setFolderDialogOpen(false);
-      setNewFolderName('');
+      setNewFolderName("");
     }
   };
 
   const handleSaveRequestToFolder = () => {
     if (!activeTab) return;
-    const folderId = selectedFolderId === '__root__' ? undefined : selectedFolderId;
+    const folderId =
+      selectedFolderId === "__root__" ? undefined : selectedFolderId;
     handleSaveToFolder(folderId);
     setSaveDialogOpen(false);
     setSelectedFolderId(undefined);
@@ -225,10 +261,13 @@ function App() {
     renameItem(item.id, item.name);
 
     // Also update tabs if a request was renamed
-    if (!('type' in item)) {
+    if (!("type" in item)) {
       const updatedTabs = tabs.filter((tab: Tab) => tab.request.id === item.id);
       updatedTabs.forEach((tab: Tab) => {
-        updateTab(tab.id, { name: item.name, request: { ...tab.request, name: item.name } });
+        updateTab(tab.id, {
+          name: item.name,
+          request: { ...tab.request, name: item.name },
+        });
       });
     }
   };
@@ -288,7 +327,8 @@ function App() {
                     <div className="space-y-2">
                       <h3 className="text-2xl font-semibold">Get Started</h3>
                       <p className="text-sm text-muted-foreground max-w-sm">
-                        Create a new HTTP request or select one from your collections
+                        Create a new HTTP request or select one from your
+                        collections
                       </p>
                     </div>
                     <Button onClick={handleNewRequest} size="lg">
@@ -301,65 +341,80 @@ function App() {
 
               {activeTab && (
                 <>
-                  {activeTab.request.protocol === 'http' && (
+                  {activeTab.request.protocol === "http" && (
                     <>
                       <RequestBuilder
                         request={activeTab.request as HttpRequest}
                         onRequestChange={(updatedRequest: HttpRequest) => {
                           // Update the tab with the modified request and mark as dirty
-                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                          updateTab(activeTab.id, {
+                            request: updatedRequest,
+                            isDirty: true,
+                          });
                         }}
                       />
                       <ResponseViewer />
                     </>
                   )}
 
-                  {activeTab.request.protocol === 'grpc' && (
+                  {activeTab.request.protocol === "grpc" && (
                     <>
                       <GrpcBuilder
                         request={activeTab.request as GrpcRequest}
                         onRequestChange={(updatedRequest: GrpcRequest) => {
                           // Update the tab with the modified request and mark as dirty
-                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                          updateTab(activeTab.id, {
+                            request: updatedRequest,
+                            isDirty: true,
+                          });
                         }}
                       />
                       <ResponseViewer />
                     </>
                   )}
 
-                  {activeTab.request.protocol === 'websocket' && (
+                  {activeTab.request.protocol === "websocket" && (
                     <>
                       <WebSocketBuilder
                         request={activeTab.request as WebSocketConfig}
                         onRequestChange={(updatedRequest: WebSocketConfig) => {
                           // Update the tab with the modified request and mark as dirty
-                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                          updateTab(activeTab.id, {
+                            request: updatedRequest,
+                            isDirty: true,
+                          });
                         }}
                       />
                       <ResponseViewer />
                     </>
                   )}
 
-                  {activeTab.request.protocol === 'socketio' && (
+                  {activeTab.request.protocol === "socketio" && (
                     <>
                       <SocketIOBuilder
                         request={activeTab.request as SocketIOConfig}
                         onRequestChange={(updatedRequest: SocketIOConfig) => {
                           // Update the tab with the modified request and mark as dirty
-                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                          updateTab(activeTab.id, {
+                            request: updatedRequest,
+                            isDirty: true,
+                          });
                         }}
                       />
                       <ResponseViewer />
                     </>
                   )}
 
-                  {activeTab.request.protocol === 'sse' && (
+                  {activeTab.request.protocol === "sse" && (
                     <>
                       <SSEBuilder
                         request={activeTab.request as SSEConfig}
                         onRequestChange={(updatedRequest: SSEConfig) => {
                           // Update the tab with the modified request and mark as dirty
-                          updateTab(activeTab.id, { request: updatedRequest, isDirty: true });
+                          updateTab(activeTab.id, {
+                            request: updatedRequest,
+                            isDirty: true,
+                          });
                         }}
                       />
                       <ResponseViewer />
@@ -375,7 +430,7 @@ function App() {
       {/* Dialogs */}
       <SaveRequestDialog
         open={saveDialogOpen}
-        requestName={activeTab?.name || ''}
+        requestName={activeTab?.name || ""}
         folders={getAllFolders()}
         selectedFolderId={selectedFolderId}
         onOpenChange={setSaveDialogOpen}
@@ -417,7 +472,7 @@ function App() {
             <Button
               variant="outline"
               className="h-auto w-full py-4 justify-start whitespace-normal"
-              onClick={() => handleProtocolSelect('http')}
+              onClick={() => handleProtocolSelect("http")}
             >
               <Globe className="size-5 mr-3 shrink-0 text-blue-500" />
               <div className="text-left w-full">
@@ -430,7 +485,7 @@ function App() {
             <Button
               variant="outline"
               className="h-auto w-full py-4 justify-start whitespace-normal"
-              onClick={() => handleProtocolSelect('grpc')}
+              onClick={() => handleProtocolSelect("grpc")}
             >
               <Zap className="size-5 mr-3 shrink-0 text-yellow-500" />
               <div className="text-left w-full">
@@ -443,7 +498,7 @@ function App() {
             <Button
               variant="outline"
               className="h-auto w-full py-4 justify-start whitespace-normal"
-              onClick={() => handleProtocolSelect('websocket')}
+              onClick={() => handleProtocolSelect("websocket")}
             >
               <Plug className="size-5 mr-3 shrink-0 text-green-500" />
               <div className="text-left w-full">
@@ -456,13 +511,14 @@ function App() {
             <Button
               variant="outline"
               className="h-auto w-full py-4 justify-start whitespace-normal"
-              onClick={() => handleProtocolSelect('socketio')}
+              onClick={() => handleProtocolSelect("socketio")}
             >
               <Activity className="size-5 mr-3 shrink-0 text-orange-500" />
               <div className="text-left w-full">
                 <div className="font-semibold">Socket.IO</div>
                 <div className="text-sm text-muted-foreground break-words">
-                  Event-based real-time bidirectional communication with reconnection
+                  Event-based real-time bidirectional communication with
+                  reconnection
                 </div>
               </div>
             </Button>
@@ -473,5 +529,5 @@ function App() {
   );
 }
 
-const root = createRoot(document.getElementById('root')!);
+const root = createRoot(document.getElementById("root")!);
 root.render(<App />);

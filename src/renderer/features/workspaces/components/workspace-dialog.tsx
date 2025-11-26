@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,16 +6,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { Workspace } from '@/types/workspace';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Workspace } from "@/types/workspace";
 
 interface WorkspaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: Workspace | null;
   onSubmit: (name: string) => void;
 }
@@ -27,13 +27,13 @@ export function WorkspaceDialog({
   initialData,
   onSubmit,
 }: WorkspaceDialogProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
 
   useEffect(() => {
-    if (open && initialData && mode === 'edit') {
+    if (open && initialData && mode === "edit") {
       setName(initialData.name);
-    } else if (open && mode === 'create') {
-      setName('');
+    } else if (open && mode === "create") {
+      setName("");
     }
   }, [open, initialData, mode]);
 
@@ -50,12 +50,12 @@ export function WorkspaceDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Create Workspace' : 'Edit Workspace'}
+            {mode === "create" ? "Create Workspace" : "Edit Workspace"}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'create'
-              ? 'Create a new workspace to organize your requests and collections.'
-              : 'Update your workspace details.'}
+            {mode === "create"
+              ? "Create a new workspace to organize your requests and collections."
+              : "Update your workspace details."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -72,11 +72,15 @@ export function WorkspaceDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              {mode === 'create' ? 'Create' : 'Save Changes'}
+              {mode === "create" ? "Create" : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>
@@ -84,6 +88,3 @@ export function WorkspaceDialog({
     </Dialog>
   );
 }
-
-
-

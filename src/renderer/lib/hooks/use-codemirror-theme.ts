@@ -10,10 +10,10 @@
  * - Editor styling
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { EditorView } from '@codemirror/view';
-import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
-import { tags as t } from '@lezer/highlight';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { EditorView } from "@codemirror/view";
+import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { tags as t } from "@lezer/highlight";
 
 interface CodeMirrorThemeOptions {
   /** Custom style ID for injected CSS (should be unique per instance) */
@@ -40,23 +40,23 @@ interface ThemeColors {
 
 export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
   const {
-    styleId = 'codemirror-custom-theme',
-    wrapperClass = 'codemirror-wrapper',
+    styleId = "codemirror-custom-theme",
+    wrapperClass = "codemirror-wrapper",
     basicSetupOverrides = {},
   } = options;
 
   const [themeColors, setThemeColors] = useState<ThemeColors>({
-    background: '',
-    foreground: '',
-    sidebarPrimary: '',
-    accent: '',
-    accentForeground: '',
-    muted: '',
-    mutedForeground: '',
-    popover: '',
-    popoverForeground: '',
-    border: '',
-    destructive: '',
+    background: "",
+    foreground: "",
+    sidebarPrimary: "",
+    accent: "",
+    accentForeground: "",
+    muted: "",
+    mutedForeground: "",
+    popover: "",
+    popoverForeground: "",
+    border: "",
+    destructive: "",
   });
   const [isDark, setIsDark] = useState(false);
 
@@ -69,19 +69,19 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
       .getPropertyValue(varName)
       .trim();
 
-    if (!value) return '';
+    if (!value) return "";
 
     // Create a temporary element to get the computed RGB color
-    const tempEl = document.createElement('div');
-    tempEl.style.display = 'none';
+    const tempEl = document.createElement("div");
+    tempEl.style.display = "none";
 
     // Wrap the value in the appropriate color function if needed
     let colorValue = value;
     if (
-      !value.startsWith('oklch') &&
-      !value.startsWith('hsl') &&
-      !value.startsWith('#') &&
-      !value.startsWith('rgb')
+      !value.startsWith("oklch") &&
+      !value.startsWith("hsl") &&
+      !value.startsWith("#") &&
+      !value.startsWith("rgb")
     ) {
       // Check if it looks like an OKLCH value (has numbers)
       const parts = value.split(/\s+/);
@@ -105,7 +105,7 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
   // Detect dark mode and watch for theme changes
   useEffect(() => {
     const checkDarkMode = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark');
+      const isDarkMode = document.documentElement.classList.contains("dark");
       setIsDark(isDarkMode);
     };
 
@@ -119,7 +119,7 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ["class"],
     });
 
     return () => observer.disconnect();
@@ -130,17 +130,17 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
     const updateColors = () => {
       requestAnimationFrame(() => {
         const colors: ThemeColors = {
-          background: getCSSVar('--background'),
-          foreground: getCSSVar('--foreground'),
-          sidebarPrimary: getCSSVar('--sidebar-primary'),
-          accent: getCSSVar('--accent'),
-          accentForeground: getCSSVar('--accent-foreground'),
-          muted: getCSSVar('--muted'),
-          mutedForeground: getCSSVar('--muted-foreground'),
-          popover: getCSSVar('--popover'),
-          popoverForeground: getCSSVar('--popover-foreground'),
-          border: getCSSVar('--border'),
-          destructive: getCSSVar('--destructive'),
+          background: getCSSVar("--background"),
+          foreground: getCSSVar("--foreground"),
+          sidebarPrimary: getCSSVar("--sidebar-primary"),
+          accent: getCSSVar("--accent"),
+          accentForeground: getCSSVar("--accent-foreground"),
+          muted: getCSSVar("--muted"),
+          mutedForeground: getCSSVar("--muted-foreground"),
+          popover: getCSSVar("--popover"),
+          popoverForeground: getCSSVar("--popover-foreground"),
+          border: getCSSVar("--border"),
+          destructive: getCSSVar("--destructive"),
         };
 
         setThemeColors(colors);
@@ -157,7 +157,7 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
     let styleEl = document.getElementById(styleId) as HTMLStyleElement;
 
     if (!styleEl) {
-      styleEl = document.createElement('style');
+      styleEl = document.createElement("style");
       styleEl.id = styleId;
       document.head.appendChild(styleEl);
     }
@@ -206,15 +206,15 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
       highlightSelectionMatches: false,
       ...basicSetupOverrides,
     }),
-    [basicSetupOverrides]
+    [basicSetupOverrides],
   );
 
   // Memoize editor style
   const editorStyle = useMemo(() => {
     const style: React.CSSProperties = {
-      fontSize: '14px',
-      border: '1px solid hsl(var(--border))',
-      borderRadius: 'var(--radius)',
+      fontSize: "14px",
+      border: "1px solid hsl(var(--border))",
+      borderRadius: "var(--radius)",
     };
 
     if (themeColors.background && themeColors.foreground) {
@@ -278,19 +278,19 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
         {
           tag: [t.meta, t.comment],
           color: themeColors.mutedForeground,
-          fontStyle: 'italic',
+          fontStyle: "italic",
         },
-        { tag: t.strong, fontWeight: 'bold' },
-        { tag: t.emphasis, fontStyle: 'italic' },
-        { tag: t.strikethrough, textDecoration: 'line-through' },
+        { tag: t.strong, fontWeight: "bold" },
+        { tag: t.emphasis, fontStyle: "italic" },
+        { tag: t.strikethrough, textDecoration: "line-through" },
         {
           tag: t.link,
           color: themeColors.sidebarPrimary,
-          textDecoration: 'underline',
+          textDecoration: "underline",
         },
         {
           tag: t.heading,
-          fontWeight: 'bold',
+          fontWeight: "bold",
           color: themeColors.sidebarPrimary,
         },
         {
@@ -302,7 +302,7 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
           color: themeColors.sidebarPrimary,
         },
         { tag: t.invalid, color: themeColors.destructive },
-      ])
+      ]),
     );
   }, [themeColors]);
 
@@ -314,56 +314,56 @@ export function useCodeMirrorTheme(options: CodeMirrorThemeOptions = {}) {
 
     return EditorView.theme(
       {
-        '&': {
+        "&": {
           backgroundColor: `${themeColors.background} !important`,
           color: `${themeColors.foreground} !important`,
         },
-        '.cm-content': {
+        ".cm-content": {
           caretColor: `${themeColors.sidebarPrimary} !important`,
-          fontFamily: 'var(--font-family)',
-          backgroundColor: 'transparent !important',
-          color: 'inherit !important',
+          fontFamily: "var(--font-family)",
+          backgroundColor: "transparent !important",
+          color: "inherit !important",
         },
-        '.cm-line': {
+        ".cm-line": {
           color: `${themeColors.foreground} !important`,
         },
-        '.cm-cursor, .cm-dropCursor': {
+        ".cm-cursor, .cm-dropCursor": {
           borderLeftColor: `${themeColors.sidebarPrimary} !important`,
         },
-        '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
+        "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
           {
             backgroundColor: `${themeColors.accent} !important`,
           },
-        '.cm-activeLine': {
+        ".cm-activeLine": {
           backgroundColor: `${themeColors.muted} !important`,
-          opacity: '0.3',
+          opacity: "0.3",
         },
-        '.cm-gutters': {
+        ".cm-gutters": {
           backgroundColor: `${themeColors.muted} !important`,
           color: `${themeColors.mutedForeground} !important`,
-          border: 'none',
+          border: "none",
         },
-        '.cm-activeLineGutter': {
+        ".cm-activeLineGutter": {
           backgroundColor: `${themeColors.accent} !important`,
         },
-        '.cm-foldPlaceholder': {
+        ".cm-foldPlaceholder": {
           backgroundColor: `${themeColors.accent} !important`,
-          border: 'none',
+          border: "none",
           color: `${themeColors.accentForeground} !important`,
         },
-        '.cm-tooltip': {
+        ".cm-tooltip": {
           backgroundColor: `${themeColors.popover} !important`,
           border: `1px solid ${themeColors.border}`,
           color: `${themeColors.popoverForeground} !important`,
         },
-        '.cm-tooltip-autocomplete': {
-          '& > ul > li[aria-selected]': {
+        ".cm-tooltip-autocomplete": {
+          "& > ul > li[aria-selected]": {
             backgroundColor: `${themeColors.accent} !important`,
             color: `${themeColors.accentForeground} !important`,
           },
         },
       },
-      { dark: isDark }
+      { dark: isDark },
     );
   }, [themeColors, isDark]);
 

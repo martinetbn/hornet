@@ -1,30 +1,25 @@
 // SSE (Server-Sent Events) Request Builder component
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Radio, Loader2, XCircle, Activity } from 'lucide-react';
-import { useConnection } from '../hooks';
-import type { SSEConfig, SSEMessage } from '@/types';
-import { KeyValueEditor } from './key-value-editor';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { currentConnectionMessagesAtom } from '@/stores/connection-atoms';
-import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
-import { resolveSSEVariables } from '@/lib/utils/variable-resolver';
-import { Badge } from '@/components/ui/badge';
-import { useEffect, useCallback } from 'react';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Radio, Loader2, XCircle, Activity } from "lucide-react";
+import { useConnection } from "../hooks";
+import type { SSEConfig, SSEMessage } from "@/types";
+import { KeyValueEditor } from "./key-value-editor";
+import { useAtomValue, useSetAtom } from "jotai";
+import { currentConnectionMessagesAtom } from "@/stores/connection-atoms";
+import { activeWorkspaceVariablesAtom } from "@/stores/environment-atoms";
+import { resolveSSEVariables } from "@/lib/utils/variable-resolver";
+import { Badge } from "@/components/ui/badge";
+import { useEffect, useCallback } from "react";
 
 interface SSEBuilderProps {
   request: SSEConfig;
@@ -36,33 +31,36 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
   // because useConnection initializes with the static config.
   // Instead, we should resolve variables and pass them to useConnection,
   // OR useConnection should handle resolution (which we did for WS/SocketIO).
-  
-  // However, SSE doesn't use the standard useConnection hook in the same way? 
+
+  // However, SSE doesn't use the standard useConnection hook in the same way?
   // Wait, it does: const { connection, connect, disconnect } = useConnection(request.id, request);
   // But useConnection expects WebSocketConfig | SocketIOConfig, not SSEConfig?
   // Let's check use-connection.ts type definition.
-  
+
   const variables = useAtomValue(activeWorkspaceVariablesAtom);
-  
+
   // Since we updated useConnection to handle resolution, we just need to ensure
   // it supports SSE protocol if it doesn't already.
   // Checking use-connection.ts again...
-  // type ConnectionConfig = WebSocketConfig | SocketIOConfig; 
+  // type ConnectionConfig = WebSocketConfig | SocketIOConfig;
   // It seems SSE is missing from ConnectionConfig in use-connection.ts!
-  
-  const { connection, connect, disconnect } = useConnection(request.id, request as any); // Cast for now until we fix the type
+
+  const { connection, connect, disconnect } = useConnection(
+    request.id,
+    request as any,
+  ); // Cast for now until we fix the type
   const messages = useAtomValue(currentConnectionMessagesAtom);
 
-  const isConnected = connection?.status === 'connected';
-  const isConnecting = connection?.status === 'connecting';
-  const isDisconnecting = connection?.status === 'disconnecting';
-  const hasError = connection?.status === 'error';
+  const isConnected = connection?.status === "connected";
+  const isConnecting = connection?.status === "connecting";
+  const isDisconnecting = connection?.status === "disconnecting";
+  const hasError = connection?.status === "error";
 
   const handleConnect = async () => {
     try {
       await connect();
     } catch (error) {
-      console.error('Failed to connect to SSE endpoint:', error);
+      console.error("Failed to connect to SSE endpoint:", error);
     }
   };
 
@@ -70,7 +68,7 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
     try {
       await disconnect();
     } catch (error) {
-      console.error('Failed to disconnect:', error);
+      console.error("Failed to disconnect:", error);
     }
   };
 
@@ -107,14 +105,12 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
         </Badge>
       );
     }
-    return (
-      <Badge variant="outline">
-        Disconnected
-      </Badge>
-    );
+    return <Badge variant="outline">Disconnected</Badge>;
   };
 
-  const sseMessages = messages.filter((msg): msg is SSEMessage => 'type' in msg && msg.type !== undefined);
+  const sseMessages = messages.filter(
+    (msg): msg is SSEMessage => "type" in msg && msg.type !== undefined,
+  );
 
   return (
     <Card>
@@ -205,8 +201,8 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
               {sseMessages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   {isConnected
-                    ? 'Waiting for events...'
-                    : 'Connect to start receiving events'}
+                    ? "Waiting for events..."
+                    : "Connect to start receiving events"}
                 </div>
               ) : (
                 sseMessages.map((msg) => (
@@ -229,11 +225,12 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
                         {new Date(msg.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
-                    {msg.type === 'event' && msg.event && (
+                    {msg.type === "event" && msg.event && (
                       <div className="mt-2 space-y-1">
                         {msg.event.id && (
                           <div className="text-xs">
-                            <span className="font-semibold">ID:</span> {msg.event.id}
+                            <span className="font-semibold">ID:</span>{" "}
+                            {msg.event.id}
                           </div>
                         )}
                         <div className="text-sm font-mono bg-background p-2 rounded overflow-x-auto">
@@ -241,15 +238,17 @@ export function SSEBuilder({ request, onRequestChange }: SSEBuilderProps) {
                         </div>
                       </div>
                     )}
-                    {msg.type === 'error' && msg.error && (
-                      <div className="mt-2 text-sm text-red-500">{msg.error}</div>
+                    {msg.type === "error" && msg.error && (
+                      <div className="mt-2 text-sm text-red-500">
+                        {msg.error}
+                      </div>
                     )}
-                    {msg.type === 'connected' && (
+                    {msg.type === "connected" && (
                       <div className="mt-2 text-sm text-green-500">
                         Successfully connected to SSE endpoint
                       </div>
                     )}
-                    {msg.type === 'disconnected' && (
+                    {msg.type === "disconnected" && (
                       <div className="mt-2 text-sm text-muted-foreground">
                         Disconnected from SSE endpoint
                       </div>

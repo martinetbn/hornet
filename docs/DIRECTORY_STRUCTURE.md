@@ -173,15 +173,19 @@ hornet/
 ## Directory Conventions
 
 ### `/src/main.ts`
+
 Electron main process - manages windows, menus, system integration.
 
 ### `/src/preload.ts`
+
 Secure bridge between main and renderer processes using contextBridge.
 
 ### `/src/renderer/`
+
 The React application that runs in the Electron renderer process.
 
 ### `/src/renderer/components/`
+
 **Reusable, generic UI components** that are not tied to specific features.
 
 - `ui/` - Primitive components (buttons, inputs, dropdowns)
@@ -191,40 +195,51 @@ The React application that runs in the Electron renderer process.
 **Example**: `button.tsx` exports `Button` component
 
 ### `/src/renderer/features/`
+
 **Feature modules organized by domain** - each feature is self-contained.
 
 Each feature folder contains:
+
 - `components/` - Feature-specific components
 - `hooks/` - Feature-specific custom hooks
 - `types.ts` - Feature-specific types
 
 **Why this structure?**
+
 - Features are isolated and easy to understand
 - Easy to find all code related to a feature
 - Supports future code splitting
 
 ### `/src/renderer/lib/`
+
 **Shared business logic and utilities** used across features.
 
 #### `adapters/`
+
 Protocol-specific implementations. Each adapter:
+
 - Implements a common interface
 - Handles protocol-specific details
 - Returns standardized responses
 
 #### `hooks/`
+
 Generic React hooks that can be used anywhere.
 
 #### `utils/`
+
 Pure utility functions with no React dependencies.
 
 #### `storage/`
+
 Persistence layer - handles reading/writing data to disk.
 
 ### `/src/renderer/stores/`
+
 **Jotai atoms** for global state management.
 
 Each file exports related atoms:
+
 ```typescript
 // request-atoms.ts
 export const currentRequestAtom = atom<Request | null>(null);
@@ -232,12 +247,14 @@ export const requestLoadingAtom = atom<boolean>(false);
 ```
 
 **Why Jotai?**
+
 - Atomic, composable state
 - No boilerplate
 - Excellent TypeScript support
 - Great for modular architecture
 
 ### `/src/renderer/types/`
+
 **Centralized TypeScript types** used across the application.
 
 - Keep types close to data shape
@@ -245,31 +262,37 @@ export const requestLoadingAtom = atom<boolean>(false);
 - Document complex types with JSDoc
 
 ### `/docs/`
+
 **Project documentation** - architecture, guides, reference.
 
 ## File Naming Conventions
 
 ### Components
+
 - **Files**: `kebab-case.tsx`
 - **Exports**: `PascalCase`
 - Example: `request-builder.tsx` → `export function RequestBuilder()`
 
 ### Hooks
+
 - **Files**: `use-feature-name.ts`
 - **Exports**: `useCamelCase`
 - Example: `use-request.ts` → `export function useRequest()`
 
 ### Utilities
+
 - **Files**: `feature-utils.ts`
 - **Exports**: `camelCase`
 - Example: `format-utils.ts` → `export function formatJson()`
 
 ### Types
+
 - **Files**: `feature.ts`
 - **Exports**: `PascalCase`
 - Example: `request.ts` → `export interface Request`
 
 ### Stores
+
 - **Files**: `feature-atoms.ts`
 - **Exports**: `camelCaseAtom`
 - Example: `request-atoms.ts` → `export const currentRequestAtom`
@@ -277,29 +300,31 @@ export const requestLoadingAtom = atom<boolean>(false);
 ## Import Conventions
 
 ### Path Aliases (configure in tsconfig.json)
+
 ```typescript
 // Instead of: import { Button } from '../../../components/ui/button'
-import { Button } from '@/components/ui/button';
-import { useRequest } from '@/features/requests/hooks/use-request';
-import { Request } from '@/types';
-import { currentRequestAtom } from '@/stores';
+import { Button } from "@/components/ui/button";
+import { useRequest } from "@/features/requests/hooks/use-request";
+import { Request } from "@/types";
+import { currentRequestAtom } from "@/stores";
 ```
 
 ### Import Order
+
 1. External dependencies
 2. Internal absolute imports (@/...)
 3. Relative imports (../)
 4. Type imports
 
 ```typescript
-import { useState } from 'react';
-import { useAtom } from 'jotai';
+import { useState } from "react";
+import { useAtom } from "jotai";
 
-import { Button } from '@/components/ui/button';
-import { Request } from '@/types';
-import { currentRequestAtom } from '@/stores';
+import { Button } from "@/components/ui/button";
+import { Request } from "@/types";
+import { currentRequestAtom } from "@/stores";
 
-import { RequestHeader } from './request-header';
+import { RequestHeader } from "./request-header";
 ```
 
 ## Adding New Features
@@ -307,6 +332,7 @@ import { RequestHeader } from './request-header';
 ### Example: Adding "Code Generation" Feature
 
 1. Create feature folder:
+
    ```
    src/renderer/features/code-generation/
    ├── components/
@@ -318,18 +344,20 @@ import { RequestHeader } from './request-header';
    ```
 
 2. Add types if needed:
+
    ```
    src/renderer/types/code-generation.ts
    ```
 
 3. Add state if needed:
+
    ```
    src/renderer/stores/code-generation-atoms.ts
    ```
 
 4. Import and use in app:
    ```typescript
-   import { CodeGenerator } from '@/features/code-generation/components/code-generator';
+   import { CodeGenerator } from "@/features/code-generation/components/code-generator";
    ```
 
 ## Best Practices

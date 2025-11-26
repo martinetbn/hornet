@@ -1,15 +1,15 @@
 // Protocol adapter types
 
 export type ConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'disconnecting'
-  | 'error';
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "disconnecting"
+  | "error";
 
 export interface Connection {
   id: string;
-  protocol: 'websocket' | 'socketio' | 'sse' | 'grpc';
+  protocol: "websocket" | "socketio" | "sse" | "grpc";
   url: string;
   status: ConnectionStatus;
   connectedAt?: number;

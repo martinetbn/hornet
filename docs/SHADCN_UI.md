@@ -98,6 +98,7 @@ import { Button } from '@/components/ui/button';
 ```
 
 **Variants:**
+
 - `default` - Primary button
 - `destructive` - Dangerous actions (delete, etc.)
 - `outline` - Secondary outlined button
@@ -106,6 +107,7 @@ import { Button } from '@/components/ui/button';
 - `link` - Link styling
 
 **Sizes:**
+
 - `default` - Standard size
 - `sm` - Small
 - `lg` - Large
@@ -131,20 +133,16 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 <Card>
   <CardHeader>
     <CardTitle>API Request</CardTitle>
     <CardDescription>Configure your HTTP request</CardDescription>
   </CardHeader>
-  <CardContent>
-    {/* Card content */}
-  </CardContent>
-  <CardFooter>
-    {/* Card footer */}
-  </CardFooter>
-</Card>
+  <CardContent>{/* Card content */}</CardContent>
+  <CardFooter>{/* Card footer */}</CardFooter>
+</Card>;
 ```
 
 ### Adding More Components
@@ -163,6 +161,7 @@ bunx --bun shadcn@latest add tabs select dialog dropdown-menu
 ```
 
 The CLI will:
+
 1. Install required dependencies automatically
 2. Create component files in `src/renderer/components/ui/`
 3. Configure imports correctly
@@ -185,16 +184,16 @@ import { DropdownMenu } from '@/components/ui/dropdown-menu';
 ### Request Builder UI
 
 ```tsx
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function RequestBuilder() {
   return (
@@ -229,7 +228,7 @@ function RequestBuilder() {
 ### Tabs for Protocol Selection
 
 ```tsx
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function ProtocolTabs() {
   return (
@@ -263,7 +262,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 function SaveCollectionDialog() {
   return (
@@ -290,6 +289,7 @@ function SaveCollectionDialog() {
 Based on the API client use case, these components will be useful:
 
 ### Essential
+
 - ✅ **Button** - Actions and controls
 - ✅ **Input** - URL inputs, text fields
 - ✅ **Card** - Grouping content
@@ -299,6 +299,7 @@ Based on the API client use case, these components will be useful:
 - **Dropdown Menu** - Context menus, actions
 
 ### UI Enhancement
+
 - **Accordion** - Collapsible sections
 - **Separator** - Visual dividers
 - **Badge** - Status indicators
@@ -309,6 +310,7 @@ Based on the API client use case, these components will be useful:
 - **Radio Group** - Single selection
 
 ### Advanced
+
 - **Popover** - Floating panels
 - **Command** - Command palette (Cmd+K)
 - **Table** - Headers/params display
@@ -326,21 +328,18 @@ Components are in your codebase, so customize freely:
 // src/renderer/components/ui/button.tsx
 
 // Add new variant
-const buttonVariants = cva(
-  'inline-flex items-center...',
-  {
-    variants: {
-      variant: {
-        default: '...',
-        // Add custom variant
-        success: 'bg-green-600 text-white hover:bg-green-700',
-      },
+const buttonVariants = cva("inline-flex items-center...", {
+  variants: {
+    variant: {
+      default: "...",
+      // Add custom variant
+      success: "bg-green-600 text-white hover:bg-green-700",
     },
-  }
-);
+  },
+});
 
 // Use it
-<Button variant="success">Success!</Button>
+<Button variant="success">Success!</Button>;
 ```
 
 ### Theming
@@ -360,12 +359,12 @@ Add dark mode toggle:
 
 ```tsx
 function ThemeToggle() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState("light");
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
 
   return <Button onClick={toggleTheme}>Toggle Theme</Button>;
@@ -389,9 +388,7 @@ function RequestCard({ request }: { request: Request }) {
         </div>
         <CardDescription>{request.url}</CardDescription>
       </CardHeader>
-      <CardContent>
-        {/* Request details */}
-      </CardContent>
+      <CardContent>{/* Request details */}</CardContent>
       <CardFooter>
         <Button variant="outline">Edit</Button>
         <Button>Send</Button>
@@ -449,7 +446,7 @@ Components are accessible by default, but add labels:
 Use proper TypeScript types:
 
 ```tsx
-import type { ButtonProps } from '@/components/ui/button';
+import type { ButtonProps } from "@/components/ui/button";
 
 interface MyButtonProps extends ButtonProps {
   loading?: boolean;
@@ -458,7 +455,7 @@ interface MyButtonProps extends ButtonProps {
 function MyButton({ loading, children, ...props }: MyButtonProps) {
   return (
     <Button disabled={loading} {...props}>
-      {loading ? 'Loading...' : children}
+      {loading ? "Loading..." : children}
     </Button>
   );
 }
@@ -488,16 +485,16 @@ cn('base-class', isActive && 'active-class', error && 'error-class')
 Combine shadcn/ui with Jotai state:
 
 ```tsx
-import { useAtom } from 'jotai';
-import { currentRequestAtom } from '@/stores';
-import { Input } from '@/components/ui/input';
+import { useAtom } from "jotai";
+import { currentRequestAtom } from "@/stores";
+import { Input } from "@/components/ui/input";
 
 function UrlInput() {
   const [request, setRequest] = useAtom(currentRequestAtom);
 
   return (
     <Input
-      value={request?.url ?? ''}
+      value={request?.url ?? ""}
       onChange={(e) =>
         setRequest((prev) => ({ ...prev!, url: e.target.value }))
       }
@@ -523,6 +520,7 @@ function UrlInput() {
 **Problem**: `Cannot find module '@/components/ui/button'`
 
 **Solution**: Check `tsconfig.json` has path aliases:
+
 ```json
 {
   "baseUrl": ".",
@@ -543,8 +541,9 @@ function UrlInput() {
 **Problem**: Dark mode colors not changing
 
 **Solution**: Add `dark` class to `<html>` or `<body>`:
+
 ```tsx
-document.documentElement.classList.add('dark');
+document.documentElement.classList.add("dark");
 ```
 
 ## Migration from Custom Components

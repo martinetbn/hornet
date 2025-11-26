@@ -1,52 +1,51 @@
 // HTTP Request Builder component
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Send, Loader2, XCircle } from 'lucide-react';
-import { useRequest } from '../hooks';
-import type { HttpRequest, HttpMethod } from '@/types';
-import { BodyEditor } from './body-editor';
-import { KeyValueEditor } from './key-value-editor';
-import { useAtomValue } from 'jotai';
-import { currentResponseAtom } from '@/stores/response-atoms';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Loader2, XCircle } from "lucide-react";
+import { useRequest } from "../hooks";
+import type { HttpRequest, HttpMethod } from "@/types";
+import { BodyEditor } from "./body-editor";
+import { KeyValueEditor } from "./key-value-editor";
+import { useAtomValue } from "jotai";
+import { currentResponseAtom } from "@/stores/response-atoms";
 
 interface RequestBuilderProps {
   request: HttpRequest;
   onRequestChange?: (request: HttpRequest) => void;
 }
 
-export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps) {
+export function RequestBuilder({
+  request,
+  onRequestChange,
+}: RequestBuilderProps) {
   const { sendRequest, loading, isStreaming, disconnectStream } = useRequest();
   const response = useAtomValue(currentResponseAtom);
 
   // Check if currently streaming
-  const activelyStreaming = response && 'isSSE' in response && response.isSSE && isStreaming();
+  const activelyStreaming =
+    response && "isSSE" in response && response.isSSE && isStreaming();
 
   const handleSend = async () => {
     try {
       await sendRequest(request);
     } catch (error) {
-      console.error('Failed to send request:', error);
+      console.error("Failed to send request:", error);
     }
   };
 
@@ -112,12 +111,20 @@ export function RequestBuilder({ request, onRequestChange }: RequestBuilderProps
           />
 
           {activelyStreaming ? (
-            <Button onClick={handleDisconnect} variant="destructive" className="h-10">
+            <Button
+              onClick={handleDisconnect}
+              variant="destructive"
+              className="h-10"
+            >
               <XCircle className="size-4 mr-2" />
               Disconnect
             </Button>
           ) : (
-            <Button onClick={handleSend} disabled={loading || !request.url} className="h-10">
+            <Button
+              onClick={handleSend}
+              disabled={loading || !request.url}
+              className="h-10"
+            >
               {loading ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />

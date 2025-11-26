@@ -1,18 +1,20 @@
 // WebSocket Protocol Adapter (using Electron IPC for custom header support)
 
-import type { WebSocketConfig, WebSocketMessage } from '@/types';
-import type { ConnectionAdapter, ConnectionStatus } from './base';
+import type { WebSocketConfig, WebSocketMessage } from "@/types";
+import type { ConnectionAdapter, ConnectionStatus } from "./base";
 
-export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebSocketMessage> {
+export class WebSocketAdapter
+  implements ConnectionAdapter<WebSocketConfig, WebSocketMessage>
+{
   private connectionId?: string;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
   private cleanupFunctions: (() => void)[] = [];
 
   async connect(config: WebSocketConfig): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      this.status = 'connecting';
-      this.emit('status', this.status);
+      this.status = "connecting";
+      this.emit("status", this.status);
 
       this.connectionId = config.id;
 
@@ -29,66 +31,77 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
 
       try {
         // Connect via Electron IPC (supports custom headers!)
-        const result = await window.electronAPI.websocket.connect(this.connectionId, {
-          url,
-          protocols: config.protocols,
-          headers,
-        });
+        const result = await window.electronAPI.websocket.connect(
+          this.connectionId,
+          {
+            url,
+            protocols: config.protocols,
+            headers,
+          },
+        );
 
         if (!result.success) {
-          this.status = 'error';
-          this.emit('status', this.status);
-          this.emit('error', new Error(result.error || 'Connection failed'));
-          reject(new Error(result.error || 'Connection failed'));
+          this.status = "error";
+          this.emit("status", this.status);
+          this.emit("error", new Error(result.error || "Connection failed"));
+          reject(new Error(result.error || "Connection failed"));
           return;
         }
 
         // Set up event listeners
         const onMessage = window.electronAPI.websocket.onMessage(
           this.connectionId,
-          (data: { data: string | Buffer; isBinary: boolean; timestamp: number }) => {
-            const { data: messageData, format, size } = this.parseIncomingMessage(data.data);
+          (data: {
+            data: string | Buffer;
+            isBinary: boolean;
+            timestamp: number;
+          }) => {
+            const {
+              data: messageData,
+              format,
+              size,
+            } = this.parseIncomingMessage(data.data);
             const message: WebSocketMessage = {
               id: crypto.randomUUID(),
-              type: 'received',
+              type: "received",
               data: messageData,
               timestamp: data.timestamp,
               format,
               size,
             };
-            this.emit('message', message);
-          }
+            this.emit("message", message);
+          },
         );
         this.cleanupFunctions.push(onMessage);
 
         const onClose = window.electronAPI.websocket.onClose(
           this.connectionId,
           (data: { code: number; reason: string }) => {
-            this.status = 'disconnected';
-            this.emit('status', this.status);
-            this.emit('disconnected', { code: data.code, reason: data.reason });
-          }
+            this.status = "disconnected";
+            this.emit("status", this.status);
+            this.emit("disconnected", { code: data.code, reason: data.reason });
+          },
         );
         this.cleanupFunctions.push(onClose);
 
         const onError = window.electronAPI.websocket.onError(
           this.connectionId,
           (data: { message: string }) => {
-            this.status = 'error';
-            this.emit('status', this.status);
-            this.emit('error', new Error(data.message));
-          }
+            this.status = "error";
+            this.emit("status", this.status);
+            this.emit("error", new Error(data.message));
+          },
         );
         this.cleanupFunctions.push(onError);
 
-        this.status = 'connected';
-        this.emit('status', this.status);
-        this.emit('connected');
+        this.status = "connected";
+        this.emit("status", this.status);
+        this.emit("connected");
         resolve();
       } catch (error) {
-        this.status = 'error';
-        this.emit('status', this.status);
-        this.emit('error', error);
+        this.status = "error";
+        this.emit("status", this.status);
+        this.emit("error", error);
         reject(error);
       }
     });
@@ -96,32 +109,35 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
 
   async send(message: WebSocketMessage): Promise<void> {
     if (!this.connectionId) {
-      throw new Error('WebSocket is not connected');
+      throw new Error("WebSocket is not connected");
     }
 
     // Handle different message formats
     const dataToSend = this.prepareMessageData(message.data, message.format);
 
-    const result = await window.electronAPI.websocket.send(this.connectionId, dataToSend);
+    const result = await window.electronAPI.websocket.send(
+      this.connectionId,
+      dataToSend,
+    );
 
     if (!result.success) {
-      throw new Error(result.error || 'Failed to send message');
+      throw new Error(result.error || "Failed to send message");
     }
 
     const sentMessage: WebSocketMessage = {
       ...message,
-      type: 'sent',
+      type: "sent",
       timestamp: Date.now(),
       size: this.calculateMessageSize(dataToSend),
     };
-    this.emit('message', sentMessage);
+    this.emit("message", sentMessage);
   }
 
   async disconnect(): Promise<void> {
     if (!this.connectionId) return;
 
-    this.status = 'disconnecting';
-    this.emit('status', this.status);
+    this.status = "disconnecting";
+    this.emit("status", this.status);
 
     // Clean up event listeners
     this.cleanupFunctions.forEach((cleanup) => cleanup());
@@ -150,7 +166,10 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
     this.eventListeners.get(event)?.forEach((callback) => callback(data));
   }
 
-  private buildUrl(baseUrl: string, params?: Array<{ key: string; value: string; enabled?: boolean }>): string {
+  private buildUrl(
+    baseUrl: string,
+    params?: Array<{ key: string; value: string; enabled?: boolean }>,
+  ): string {
     if (!params || params.length === 0) {
       return baseUrl;
     }
@@ -168,7 +187,10 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
     return url.toString();
   }
 
-  private prepareMessageData(data: string | ArrayBuffer | Blob, format?: string): string | ArrayBuffer | Blob {
+  private prepareMessageData(
+    data: string | ArrayBuffer | Blob,
+    format?: string,
+  ): string | ArrayBuffer | Blob {
     // If data is already binary, return as-is
     if (data instanceof ArrayBuffer || data instanceof Blob) {
       return data;
@@ -181,14 +203,14 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
 
   private parseIncomingMessage(data: string | ArrayBuffer | Blob): {
     data: string | ArrayBuffer | Blob;
-    format: 'text' | 'json' | 'xml' | 'html' | 'binary';
+    format: "text" | "json" | "xml" | "html" | "binary";
     size: number;
   } {
     // Determine format based on data type and content
     if (data instanceof ArrayBuffer) {
       return {
         data,
-        format: 'binary',
+        format: "binary",
         size: data.byteLength,
       };
     }
@@ -196,27 +218,33 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
     if (data instanceof Blob) {
       return {
         data,
-        format: 'binary',
+        format: "binary",
         size: data.size,
       };
     }
 
     // For string data, try to detect format
     const str = data as string;
-    let format: 'text' | 'json' | 'xml' | 'html' | 'binary' = 'text';
+    let format: "text" | "json" | "xml" | "html" | "binary" = "text";
 
     try {
       // Try to parse as JSON
       JSON.parse(str);
-      format = 'json';
+      format = "json";
     } catch {
       // Check for XML
-      if (str.trim().startsWith('<?xml') || (str.trim().startsWith('<') && str.trim().endsWith('>'))) {
+      if (
+        str.trim().startsWith("<?xml") ||
+        (str.trim().startsWith("<") && str.trim().endsWith(">"))
+      ) {
         // Could be XML or HTML
-        if (str.toLowerCase().includes('<!doctype html') || str.toLowerCase().includes('<html')) {
-          format = 'html';
+        if (
+          str.toLowerCase().includes("<!doctype html") ||
+          str.toLowerCase().includes("<html")
+        ) {
+          format = "html";
         } else {
-          format = 'xml';
+          format = "xml";
         }
       }
     }

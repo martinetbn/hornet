@@ -1,49 +1,54 @@
 // Socket.IO Request Builder component
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Activity, Loader2, XCircle, Send, Plus, Trash2 } from 'lucide-react';
-import { useConnection } from '../hooks';
-import type { SocketIOConfig, SocketIOMessage } from '@/types';
-import { KeyValueEditor } from './key-value-editor';
-import { useSetAtom } from 'jotai';
-import { clearMessagesAtom } from '@/stores/connection-atoms';
-import { Badge } from '@/components/ui/badge';
-import { useEffect, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
-import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Activity, Loader2, XCircle, Send, Plus, Trash2 } from "lucide-react";
+import { useConnection } from "../hooks";
+import type { SocketIOConfig, SocketIOMessage } from "@/types";
+import { KeyValueEditor } from "./key-value-editor";
+import { useSetAtom } from "jotai";
+import { clearMessagesAtom } from "@/stores/connection-atoms";
+import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { useCodeMirrorTheme } from "@/lib/hooks/use-codemirror-theme";
 
 interface SocketIOBuilderProps {
   request: SocketIOConfig;
   onRequestChange?: (request: SocketIOConfig) => void;
 }
 
-export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderProps) {
-  const { connection, connect, disconnect, sendMessage } = useConnection(request.id, request);
+export function SocketIOBuilder({
+  request,
+  onRequestChange,
+}: SocketIOBuilderProps) {
+  const { connection, connect, disconnect, sendMessage } = useConnection(
+    request.id,
+    request,
+  );
   const clearMessages = useSetAtom(clearMessagesAtom);
 
   // Message composer state
-  const [eventName, setEventName] = useState(request.draftMessage?.event || 'message');
-  const [messageData, setMessageData] = useState(request.draftMessage?.data || '');
+  const [eventName, setEventName] = useState(
+    request.draftMessage?.event || "message",
+  );
+  const [messageData, setMessageData] = useState(
+    request.draftMessage?.data || "",
+  );
   const [isSending, setIsSending] = useState(false);
 
   // Events to listen to
   const [events, setEvents] = useState<string[]>(request.events || []);
-  const [newEventName, setNewEventName] = useState('');
+  const [newEventName, setNewEventName] = useState("");
 
   // CodeMirror theme
   const {
@@ -53,8 +58,8 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
     basicSetup,
     wrapperClass,
   } = useCodeMirrorTheme({
-    styleId: 'codemirror-socketio-message-theme',
-    wrapperClass: 'codemirror-socketio-message',
+    styleId: "codemirror-socketio-message-theme",
+    wrapperClass: "codemirror-socketio-message",
     basicSetupOverrides: {
       highlightActiveLine: false,
     },
@@ -69,10 +74,10 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
   //   };
   // }, [request.id, setSelectedConnectionId]);
 
-  const isConnected = connection?.status === 'connected';
-  const isConnecting = connection?.status === 'connecting';
-  const isDisconnecting = connection?.status === 'disconnecting';
-  const hasError = connection?.status === 'error';
+  const isConnected = connection?.status === "connected";
+  const isConnecting = connection?.status === "connecting";
+  const isDisconnecting = connection?.status === "disconnecting";
+  const hasError = connection?.status === "error";
 
   const handleConnect = async () => {
     try {
@@ -80,7 +85,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
       clearMessages(request.id);
       await connect();
     } catch (error) {
-      console.error('Failed to connect to Socket.IO:', error);
+      console.error("Failed to connect to Socket.IO:", error);
     }
   };
 
@@ -88,7 +93,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
     try {
       await disconnect();
     } catch (error) {
-      console.error('Failed to disconnect:', error);
+      console.error("Failed to disconnect:", error);
     }
   };
 
@@ -114,7 +119,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
 
       const message: SocketIOMessage = {
         id: crypto.randomUUID(),
-        type: 'sent',
+        type: "sent",
         event: eventName,
         data: parsedData,
         timestamp: Date.now(),
@@ -123,7 +128,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
       await sendMessage(message);
       // Don't clear input after sending - keep it for potential re-sending
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     } finally {
       setIsSending(false);
     }
@@ -171,7 +176,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
     if (newEventName.trim() && !events.includes(newEventName.trim())) {
       const updatedEvents = [...events, newEventName.trim()];
       setEvents(updatedEvents);
-      setNewEventName('');
+      setNewEventName("");
       onRequestChange?.({
         ...request,
         events: updatedEvents,
@@ -181,7 +186,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
   };
 
   const handleRemoveEvent = (eventToRemove: string) => {
-    const updatedEvents = events.filter(e => e !== eventToRemove);
+    const updatedEvents = events.filter((e) => e !== eventToRemove);
     setEvents(updatedEvents);
     onRequestChange?.({
       ...request,
@@ -215,11 +220,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
         </Badge>
       );
     }
-    return (
-      <Badge variant="outline">
-        Disconnected
-      </Badge>
-    );
+    return <Badge variant="outline">Disconnected</Badge>;
   };
 
   return (
@@ -229,7 +230,8 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
           <div>
             <CardTitle>Socket.IO</CardTitle>
             <CardDescription>
-              Connect to Socket.IO server for real-time event-based communication
+              Connect to Socket.IO server for real-time event-based
+              communication
             </CardDescription>
           </div>
           {getStatusBadge()}
@@ -247,7 +249,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
           />
 
           <Input
-            value={request.path || '/socket.io'}
+            value={request.path || "/socket.io"}
             onChange={(e) => handlePathChange(e.target.value)}
             placeholder="/socket.io"
             className="w-32 h-10"
@@ -316,7 +318,9 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Message Content (JSON):</label>
+                <label className="text-sm font-medium">
+                  Message Content (JSON):
+                </label>
                 <div className={wrapperClass}>
                   <CodeMirror
                     value={messageData}
@@ -329,7 +333,8 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Enter data as JSON. Objects will be sent as single argument, arrays will be spread as multiple arguments.
+                  Enter data as JSON. Objects will be sent as single argument,
+                  arrays will be spread as multiple arguments.
                 </p>
               </div>
 
@@ -358,7 +363,8 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
               <div>
                 <label className="text-sm font-medium">Events to Listen</label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Add event names to subscribe to. All events are automatically captured.
+                  Add event names to subscribe to. All events are automatically
+                  captured.
                 </p>
               </div>
 
@@ -370,7 +376,7 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
                   placeholder="Event name (e.g., notification)"
                   className="flex-1"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       handleAddEvent();
                     }
@@ -378,7 +384,9 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
                 />
                 <Button
                   onClick={handleAddEvent}
-                  disabled={!newEventName.trim() || events.includes(newEventName.trim())}
+                  disabled={
+                    !newEventName.trim() || events.includes(newEventName.trim())
+                  }
                   size="sm"
                 >
                   <Plus className="size-4 mr-1" />
@@ -390,7 +398,8 @@ export function SocketIOBuilder({ request, onRequestChange }: SocketIOBuilderPro
               <div className="space-y-2">
                 {events.length === 0 ? (
                   <div className="text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded-md">
-                    No events added. Add event names above to track specific events.
+                    No events added. Add event names above to track specific
+                    events.
                   </div>
                 ) : (
                   events.map((event) => (

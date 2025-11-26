@@ -1,33 +1,28 @@
 // gRPC Request Builder component
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Send, Loader2, Upload } from 'lucide-react';
-import type { GrpcRequest } from '@/types';
-import { KeyValueEditor } from './key-value-editor';
-import { JsonEditor } from './json-editor';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Loader2, Upload } from "lucide-react";
+import type { GrpcRequest } from "@/types";
+import { KeyValueEditor } from "./key-value-editor";
+import { JsonEditor } from "./json-editor";
 
 interface GrpcBuilderProps {
   request: GrpcRequest;
@@ -47,7 +42,7 @@ function parseProtoFile(content: string): ProtoMethod[] {
 
   // Extract package name
   const packageMatch = content.match(/package\s+([a-zA-Z0-9_.]+)\s*;/);
-  const packageName = packageMatch ? packageMatch[1] : '';
+  const packageName = packageMatch ? packageMatch[1] : "";
 
   // Find all services
   const serviceRegex = /service\s+([a-zA-Z0-9_]+)\s*\{([^}]+)\}/g;
@@ -56,10 +51,13 @@ function parseProtoFile(content: string): ProtoMethod[] {
   while ((serviceMatch = serviceRegex.exec(content)) !== null) {
     const serviceName = serviceMatch[1];
     const serviceBody = serviceMatch[2];
-    const fullServiceName = packageName ? `${packageName}.${serviceName}` : serviceName;
+    const fullServiceName = packageName
+      ? `${packageName}.${serviceName}`
+      : serviceName;
 
     // Find all RPC methods in this service
-    const rpcRegex = /rpc\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)\s*returns\s*\(([^)]+)\)/g;
+    const rpcRegex =
+      /rpc\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)\s*returns\s*\(([^)]+)\)/g;
     let rpcMatch;
 
     while ((rpcMatch = rpcRegex.exec(serviceBody)) !== null) {
@@ -78,9 +76,9 @@ function parseProtoFile(content: string): ProtoMethod[] {
   return methods;
 }
 
-import { useAtomValue } from 'jotai';
-import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
-import { resolveGrpcVariables } from '@/lib/utils/variable-resolver';
+import { useAtomValue } from "jotai";
+import { activeWorkspaceVariablesAtom } from "@/stores/environment-atoms";
+import { resolveGrpcVariables } from "@/lib/utils/variable-resolver";
 
 export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
   const variables = useAtomValue(activeWorkspaceVariablesAtom);
@@ -102,9 +100,9 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
   const handleSend = async () => {
     // Resolve variables before sending
     const resolvedRequest = resolveGrpcVariables(request, variables);
-    
+
     // TODO: Implement gRPC send functionality using resolvedRequest
-    console.log('Sending gRPC request:', resolvedRequest);
+    console.log("Sending gRPC request:", resolvedRequest);
   };
 
   const handleUrlChange = (url: string) => {
@@ -116,44 +114,57 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
       ...request,
       protoFile,
       protoContent: content,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
   };
 
   const handleMethodChange = (methodFullName: string) => {
     // Find the method details
-    const methodDetails = availableMethods.find(m => m.fullName === methodFullName);
+    const methodDetails = availableMethods.find(
+      (m) => m.fullName === methodFullName,
+    );
 
     onRequestChange?.({
       ...request,
       method: methodFullName,
       service: methodDetails?.service,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
   };
 
   const handleDataChange = (data: string) => {
     try {
       const parsedData = JSON.parse(data);
-      onRequestChange?.({ ...request, data: parsedData, updatedAt: Date.now() });
+      onRequestChange?.({
+        ...request,
+        data: parsedData,
+        updatedAt: Date.now(),
+      });
     } catch (error) {
       // Keep the string value if JSON parsing fails
       onRequestChange?.({ ...request, data, updatedAt: Date.now() });
     }
   };
 
-  const handleMetadataChange = (items: Array<{ key: string; value: string; enabled?: boolean }>) => {
+  const handleMetadataChange = (
+    items: Array<{ key: string; value: string; enabled?: boolean }>,
+  ) => {
     const metadata = items
       .filter((item) => item.enabled !== false && item.key && item.value)
-      .reduce((acc, item) => {
-        acc[item.key] = item.value;
-        return acc;
-      }, {} as Record<string, string>);
+      .reduce(
+        (acc, item) => {
+          acc[item.key] = item.value;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
     onRequestChange?.({ ...request, metadata, updatedAt: Date.now() });
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
@@ -161,17 +172,19 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
         // Parse and store the proto file
         handleProtoFileChange(file.name, content);
       } catch (error) {
-        console.error('Failed to read proto file:', error);
+        console.error("Failed to read proto file:", error);
       }
     }
   };
 
   // Convert metadata object to key-value pairs for the editor
-  const metadataItems = Object.entries(request.metadata || {}).map(([key, value]) => ({
-    key,
-    value,
-    enabled: true,
-  }));
+  const metadataItems = Object.entries(request.metadata || {}).map(
+    ([key, value]) => ({
+      key,
+      value,
+      enabled: true,
+    }),
+  );
 
   return (
     <Card>
@@ -191,7 +204,11 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
             className="flex-1 h-10"
           />
 
-          <Button onClick={handleSend} disabled={loading || !request.url || !request.method} className="h-10">
+          <Button
+            onClick={handleSend}
+            disabled={loading || !request.url || !request.method}
+            className="h-10"
+          >
             {loading ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
@@ -253,18 +270,22 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
                   disabled={availableMethods.length === 0}
                 >
                   <SelectTrigger id="method">
-                    <SelectValue placeholder={
-                      availableMethods.length === 0
-                        ? "Load a proto file first"
-                        : "Select a method"
-                    } />
+                    <SelectValue
+                      placeholder={
+                        availableMethods.length === 0
+                          ? "Load a proto file first"
+                          : "Select a method"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {availableMethods.map((method) => (
                       <SelectItem key={method.fullName} value={method.fullName}>
                         <div className="flex flex-col items-start">
                           <span className="font-medium">{method.name}</span>
-                          <span className="text-xs text-muted-foreground">{method.service}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {method.service}
+                          </span>
                         </div>
                       </SelectItem>
                     ))}
@@ -272,8 +293,8 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   {availableMethods.length > 0
-                    ? `${availableMethods.length} method${availableMethods.length !== 1 ? 's' : ''} available`
-                    : 'Upload a proto file to see available methods'}
+                    ? `${availableMethods.length} method${availableMethods.length !== 1 ? "s" : ""} available`
+                    : "Upload a proto file to see available methods"}
                 </p>
               </div>
             </div>
@@ -283,7 +304,11 @@ export function GrpcBuilder({ request, onRequestChange }: GrpcBuilderProps) {
             <div className="space-y-2">
               <Label htmlFor="message-data">Message (JSON)</Label>
               <JsonEditor
-                value={typeof request.data === 'string' ? request.data : JSON.stringify(request.data, null, 2)}
+                value={
+                  typeof request.data === "string"
+                    ? request.data
+                    : JSON.stringify(request.data, null, 2)
+                }
                 onChange={handleDataChange}
                 placeholder='{\n  "id": 1,\n  "name": "example"\n}'
                 height="200px"

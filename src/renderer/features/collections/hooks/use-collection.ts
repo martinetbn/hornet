@@ -1,10 +1,14 @@
 // Collection management hook
 
-import { useAtom, useAtomValue } from 'jotai';
-import { collectionsAtom, generateId } from '@/stores/collection-atoms';
-import { activeWorkspaceIdAtom } from '@/stores/workspace-atoms';
-import type { CollectionItem, CollectionFolder, HttpRequest } from '@/stores/collection-atoms';
-import { useCallback, useMemo } from 'react';
+import { useAtom, useAtomValue } from "jotai";
+import { collectionsAtom, generateId } from "@/stores/collection-atoms";
+import { activeWorkspaceIdAtom } from "@/stores/workspace-atoms";
+import type {
+  CollectionItem,
+  CollectionFolder,
+  HttpRequest,
+} from "@/stores/collection-atoms";
+import { useCallback, useMemo } from "react";
 import {
   addToFolderInTree,
   removeItemFromTree,
@@ -13,7 +17,7 @@ import {
   updateItemInTree,
   findPathInTree,
   getAllFoldersFromTree,
-} from '../utils/collection-tree-utils';
+} from "../utils/collection-tree-utils";
 
 export function useCollection() {
   const [allCollections, setAllCollections] = useAtom(collectionsAtom);
@@ -23,11 +27,11 @@ export function useCollection() {
   const collections = useMemo(() => {
     return allCollections.filter((item) => {
       // If item has workspaceId, match it
-      if ('workspaceId' in item && item.workspaceId) {
+      if ("workspaceId" in item && item.workspaceId) {
         return item.workspaceId === activeWorkspaceId;
       }
       // Legacy items (no workspaceId) belong to default workspace
-      return activeWorkspaceId === 'default';
+      return activeWorkspaceId === "default";
     });
   }, [allCollections, activeWorkspaceId]);
 
@@ -35,15 +39,15 @@ export function useCollection() {
   const updateCollections = useCallback(
     (newWorkspaceCollections: CollectionItem[]) => {
       const otherCollections = allCollections.filter((item) => {
-        if ('workspaceId' in item && item.workspaceId) {
+        if ("workspaceId" in item && item.workspaceId) {
           return item.workspaceId !== activeWorkspaceId;
         }
-        return activeWorkspaceId !== 'default';
+        return activeWorkspaceId !== "default";
       });
 
       setAllCollections([...otherCollections, ...newWorkspaceCollections]);
     },
-    [allCollections, activeWorkspaceId, setAllCollections]
+    [allCollections, activeWorkspaceId, setAllCollections],
   );
 
   // Add item to a folder
@@ -51,9 +55,11 @@ export function useCollection() {
     (folderId: string, newItem: CollectionItem): void => {
       // Ensure new item has workspaceId
       const itemWithWorkspace = { ...newItem, workspaceId: activeWorkspaceId };
-      updateCollections(addToFolderInTree(collections, folderId, itemWithWorkspace));
+      updateCollections(
+        addToFolderInTree(collections, folderId, itemWithWorkspace),
+      );
     },
-    [collections, activeWorkspaceId, updateCollections]
+    [collections, activeWorkspaceId, updateCollections],
   );
 
   // Remove item from collections
@@ -61,7 +67,7 @@ export function useCollection() {
     (itemId: string): void => {
       updateCollections(removeItemFromTree(collections, itemId));
     },
-    [collections, updateCollections]
+    [collections, updateCollections],
   );
 
   // Rename item in collections
@@ -69,7 +75,7 @@ export function useCollection() {
     (itemId: string, newName: string): void => {
       updateCollections(renameItemInTree(collections, itemId, newName));
     },
-    [collections, updateCollections]
+    [collections, updateCollections],
   );
 
   // Find item in collections (search only current workspace)
@@ -77,7 +83,7 @@ export function useCollection() {
     (itemId: string): CollectionItem | null => {
       return findItemInTree(collections, itemId);
     },
-    [collections]
+    [collections],
   );
 
   // Update request in collections
@@ -88,10 +94,10 @@ export function useCollection() {
           ...updatedRequest,
           workspaceId: activeWorkspaceId, // Ensure workspaceId is preserved/set
           updatedAt: Date.now(),
-        }))
+        })),
       );
     },
-    [collections, activeWorkspaceId, updateCollections]
+    [collections, activeWorkspaceId, updateCollections],
   );
 
   // Find path to item
@@ -99,7 +105,7 @@ export function useCollection() {
     (itemId: string): string[] => {
       return findPathInTree(collections, itemId);
     },
-    [collections]
+    [collections],
   );
 
   // Get all folders
@@ -113,7 +119,7 @@ export function useCollection() {
       const newFolder: CollectionFolder = {
         id: generateId(),
         name,
-        type: 'folder',
+        type: "folder",
         workspaceId: activeWorkspaceId,
         children: [],
       };
@@ -124,7 +130,7 @@ export function useCollection() {
         addToFolder(parentId, newFolder);
       }
     },
-    [collections, activeWorkspaceId, updateCollections, addToFolder]
+    [collections, activeWorkspaceId, updateCollections, addToFolder],
   );
 
   // Save request (add or update)
@@ -150,7 +156,14 @@ export function useCollection() {
         }
       }
     },
-    [collections, activeWorkspaceId, findItem, updateRequest, addToFolder, updateCollections]
+    [
+      collections,
+      activeWorkspaceId,
+      findItem,
+      updateRequest,
+      addToFolder,
+      updateCollections,
+    ],
   );
 
   return {

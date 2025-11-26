@@ -1,8 +1,8 @@
 // Response-related state atoms
 
-import { atom } from 'jotai';
-import type { HttpResponse } from '@/types';
-import { tabsAtom, activeTabIdAtom } from './collection-atoms';
+import { atom } from "jotai";
+import type { HttpResponse } from "@/types";
+import { tabsAtom, activeTabIdAtom } from "./collection-atoms";
 
 /**
  * Derived atom: Gets the current response from the active tab
@@ -29,5 +29,5 @@ export const addResponseToHistoryAtom = atom(
     // Keep last 50 responses
     const newHistory = [response, ...history].slice(0, 50);
     set(responseHistoryAtom, newHistory);
-  }
+  },
 );

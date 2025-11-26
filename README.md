@@ -29,6 +29,7 @@ bun run build
 ```
 
 This creates the `dist/` directory with:
+
 - `dist/main.js` - Electron main process
 - `dist/preload.js` - Preload script for security
 - `dist/renderer/` - React app with bundled assets

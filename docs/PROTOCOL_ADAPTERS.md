@@ -63,11 +63,11 @@ export interface ConnectionAdapter<TConfig, TMessage> {
 }
 
 export type ConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'disconnecting'
-  | 'error';
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "disconnecting"
+  | "error";
 ```
 
 ## HTTP Adapter
@@ -77,8 +77,12 @@ export type ConnectionStatus =
 ```typescript
 // src/renderer/lib/adapters/http-adapter.ts
 
-import axios, { AxiosInstance, AxiosRequestConfig, CancelTokenSource } from 'axios';
-import { HttpRequest, HttpResponse } from '@/types';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  CancelTokenSource,
+} from "axios";
+import { HttpRequest, HttpResponse } from "@/types";
 
 export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   private client: AxiosInstance;
@@ -119,7 +123,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       };
     } catch (error) {
       if (axios.isCancel(error)) {
-        throw new Error('Request cancelled');
+        throw new Error("Request cancelled");
       }
 
       const endTime = Date.now();
@@ -131,7 +135,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   }
 
   cancel(): void {
-    this.cancelToken?.cancel('Request cancelled by user');
+    this.cancelToken?.cancel("Request cancelled by user");
   }
 
   dispose(): void {
@@ -143,15 +147,15 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 ### Usage
 
 ```typescript
-import { HttpAdapter } from '@/lib/adapters/http-adapter';
+import { HttpAdapter } from "@/lib/adapters/http-adapter";
 
 const adapter = new HttpAdapter();
 
 const response = await adapter.execute({
-  method: 'POST',
-  url: 'https://api.example.com/users',
-  headers: { 'Content-Type': 'application/json' },
-  body: { name: 'John' },
+  method: "POST",
+  url: "https://api.example.com/users",
+  headers: { "Content-Type": "application/json" },
+  body: { name: "John" },
 });
 
 console.log(response.status, response.data);
@@ -164,73 +168,75 @@ console.log(response.status, response.data);
 ```typescript
 // src/renderer/lib/adapters/websocket-adapter.ts
 
-import { WebSocketConfig, WebSocketMessage } from '@/types';
-import { ConnectionAdapter, ConnectionStatus } from './base';
+import { WebSocketConfig, WebSocketMessage } from "@/types";
+import { ConnectionAdapter, ConnectionStatus } from "./base";
 
-export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebSocketMessage> {
+export class WebSocketAdapter
+  implements ConnectionAdapter<WebSocketConfig, WebSocketMessage>
+{
   private ws?: WebSocket;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
 
   async connect(config: WebSocketConfig): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.status = 'connecting';
-      this.emit('status', this.status);
+      this.status = "connecting";
+      this.emit("status", this.status);
 
       this.ws = new WebSocket(config.url, config.protocols);
 
       this.ws.onopen = () => {
-        this.status = 'connected';
-        this.emit('status', this.status);
-        this.emit('connected');
+        this.status = "connected";
+        this.emit("status", this.status);
+        this.emit("connected");
         resolve();
       };
 
       this.ws.onmessage = (event) => {
         const message: WebSocketMessage = {
           id: crypto.randomUUID(),
-          type: 'received',
+          type: "received",
           data: event.data,
           timestamp: Date.now(),
         };
-        this.emit('message', message);
+        this.emit("message", message);
       };
 
       this.ws.onerror = (error) => {
-        this.status = 'error';
-        this.emit('status', this.status);
-        this.emit('error', error);
+        this.status = "error";
+        this.emit("status", this.status);
+        this.emit("error", error);
         reject(error);
       };
 
       this.ws.onclose = (event) => {
-        this.status = 'disconnected';
-        this.emit('status', this.status);
-        this.emit('disconnected', { code: event.code, reason: event.reason });
+        this.status = "disconnected";
+        this.emit("status", this.status);
+        this.emit("disconnected", { code: event.code, reason: event.reason });
       };
     });
   }
 
   async send(message: WebSocketMessage): Promise<void> {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected');
+      throw new Error("WebSocket is not connected");
     }
 
     this.ws.send(message.data);
 
     const sentMessage: WebSocketMessage = {
       ...message,
-      type: 'sent',
+      type: "sent",
       timestamp: Date.now(),
     };
-    this.emit('message', sentMessage);
+    this.emit("message", sentMessage);
   }
 
   async disconnect(): Promise<void> {
     if (!this.ws) return;
 
-    this.status = 'disconnecting';
-    this.emit('status', this.status);
+    this.status = "disconnecting";
+    this.emit("status", this.status);
 
     this.ws.close();
     this.ws = undefined;
@@ -262,16 +268,16 @@ export class WebSocketAdapter implements ConnectionAdapter<WebSocketConfig, WebS
 ```typescript
 const adapter = new WebSocketAdapter();
 
-adapter.on('message', (message) => {
-  console.log('Received:', message);
+adapter.on("message", (message) => {
+  console.log("Received:", message);
 });
 
-await adapter.connect({ url: 'wss://echo.websocket.org' });
+await adapter.connect({ url: "wss://echo.websocket.org" });
 
 await adapter.send({
   id: crypto.randomUUID(),
-  type: 'sent',
-  data: 'Hello WebSocket!',
+  type: "sent",
+  data: "Hello WebSocket!",
   timestamp: Date.now(),
 });
 
@@ -285,43 +291,45 @@ await adapter.disconnect();
 ```typescript
 // src/renderer/lib/adapters/socketio-adapter.ts
 
-import { io, Socket } from 'socket.io-client';
-import { SocketIOConfig, SocketIOMessage } from '@/types';
-import { ConnectionAdapter, ConnectionStatus } from './base';
+import { io, Socket } from "socket.io-client";
+import { SocketIOConfig, SocketIOMessage } from "@/types";
+import { ConnectionAdapter, ConnectionStatus } from "./base";
 
-export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, SocketIOMessage> {
+export class SocketIOAdapter
+  implements ConnectionAdapter<SocketIOConfig, SocketIOMessage>
+{
   private socket?: Socket;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
 
   async connect(config: SocketIOConfig): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.status = 'connecting';
-      this.emit('status', this.status);
+      this.status = "connecting";
+      this.emit("status", this.status);
 
       this.socket = io(config.url, {
         auth: config.auth,
-        transports: config.transports || ['websocket', 'polling'],
+        transports: config.transports || ["websocket", "polling"],
         query: config.query,
       });
 
-      this.socket.on('connect', () => {
-        this.status = 'connected';
-        this.emit('status', this.status);
-        this.emit('connected', { id: this.socket!.id });
+      this.socket.on("connect", () => {
+        this.status = "connected";
+        this.emit("status", this.status);
+        this.emit("connected", { id: this.socket!.id });
         resolve();
       });
 
-      this.socket.on('disconnect', (reason) => {
-        this.status = 'disconnected';
-        this.emit('status', this.status);
-        this.emit('disconnected', { reason });
+      this.socket.on("disconnect", (reason) => {
+        this.status = "disconnected";
+        this.emit("status", this.status);
+        this.emit("disconnected", { reason });
       });
 
-      this.socket.on('connect_error', (error) => {
-        this.status = 'error';
-        this.emit('status', this.status);
-        this.emit('error', error);
+      this.socket.on("connect_error", (error) => {
+        this.status = "error";
+        this.emit("status", this.status);
+        this.emit("error", error);
         reject(error);
       });
 
@@ -329,36 +337,36 @@ export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, Socket
       this.socket.onAny((event, ...args) => {
         const message: SocketIOMessage = {
           id: crypto.randomUUID(),
-          type: 'received',
+          type: "received",
           event,
           data: args,
           timestamp: Date.now(),
         };
-        this.emit('message', message);
+        this.emit("message", message);
       });
     });
   }
 
   async send(message: SocketIOMessage): Promise<void> {
     if (!this.socket?.connected) {
-      throw new Error('Socket.IO is not connected');
+      throw new Error("Socket.IO is not connected");
     }
 
     this.socket.emit(message.event, ...message.data);
 
     const sentMessage: SocketIOMessage = {
       ...message,
-      type: 'sent',
+      type: "sent",
       timestamp: Date.now(),
     };
-    this.emit('message', sentMessage);
+    this.emit("message", sentMessage);
   }
 
   async disconnect(): Promise<void> {
     if (!this.socket) return;
 
-    this.status = 'disconnecting';
-    this.emit('status', this.status);
+    this.status = "disconnecting";
+    this.emit("status", this.status);
 
     this.socket.disconnect();
     this.socket = undefined;
@@ -392,19 +400,19 @@ export class SocketIOAdapter implements ConnectionAdapter<SocketIOConfig, Socket
 ```typescript
 // src/renderer/lib/adapters/sse-adapter.ts
 
-import type { SSEConfig, SSEMessage, SSEEvent } from '@/types';
-import type { ConnectionAdapter, ConnectionStatus } from './base';
+import type { SSEConfig, SSEMessage, SSEEvent } from "@/types";
+import type { ConnectionAdapter, ConnectionStatus } from "./base";
 
 export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
   private eventSource?: EventSource;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
   private registeredEventTypes = new Set<string>();
 
   async connect(config: SSEConfig): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.status = 'connecting';
-      this.emit('status', this.status);
+      this.status = "connecting";
+      this.emit("status", this.status);
 
       try {
         const url = this.buildUrl(config);
@@ -413,29 +421,29 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
         });
 
         this.eventSource.onopen = () => {
-          this.status = 'connected';
-          this.emit('status', this.status);
-          this.emit('connected');
+          this.status = "connected";
+          this.emit("status", this.status);
+          this.emit("connected");
           resolve();
         };
 
         this.eventSource.onmessage = (event) => {
-          this.handleMessage('message', event);
+          this.handleMessage("message", event);
         };
 
         this.eventSource.onerror = (error) => {
-          const wasConnected = this.status === 'connected';
-          this.status = 'error';
-          this.emit('status', this.status);
-          this.emit('error', error);
+          const wasConnected = this.status === "connected";
+          this.status = "error";
+          this.emit("status", this.status);
+          this.emit("error", error);
 
           if (!wasConnected) {
-            reject(new Error('Failed to connect to SSE endpoint'));
+            reject(new Error("Failed to connect to SSE endpoint"));
           }
         };
       } catch (error) {
-        this.status = 'error';
-        this.emit('status', this.status);
+        this.status = "error";
+        this.emit("status", this.status);
         reject(error);
       }
     });
@@ -465,31 +473,33 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
 
     const message: SSEMessage = {
       id: crypto.randomUUID(),
-      type: 'event',
+      type: "event",
       event: sseEvent,
       timestamp: Date.now(),
     };
 
-    this.emit('message', message);
+    this.emit("message", message);
   }
 
   async send(_message: never): Promise<void> {
-    throw new Error('SSE is unidirectional. Use HTTP requests to send data to the server.');
+    throw new Error(
+      "SSE is unidirectional. Use HTTP requests to send data to the server.",
+    );
   }
 
   async disconnect(): Promise<void> {
     if (!this.eventSource) return;
 
-    this.status = 'disconnecting';
-    this.emit('status', this.status);
+    this.status = "disconnecting";
+    this.emit("status", this.status);
 
     this.eventSource.close();
     this.eventSource = undefined;
     this.registeredEventTypes.clear();
 
-    this.status = 'disconnected';
-    this.emit('status', this.status);
-    this.emit('disconnected');
+    this.status = "disconnected";
+    this.emit("status", this.status);
+    this.emit("disconnected");
   }
 
   on(event: string, callback: (data: unknown) => void): void {
@@ -518,18 +528,18 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
 ```typescript
 const adapter = new SSEAdapter();
 
-adapter.on('message', (message) => {
-  console.log('Received:', message);
+adapter.on("message", (message) => {
+  console.log("Received:", message);
 });
 
 await adapter.connect({
-  url: 'https://api.example.com/events',
+  url: "https://api.example.com/events",
   withCredentials: false,
 });
 
 // Listen for custom event types
-adapter.listenToEvent('notification');
-adapter.listenToEvent('update');
+adapter.listenToEvent("notification");
+adapter.listenToEvent("update");
 
 await adapter.disconnect();
 ```
@@ -555,9 +565,9 @@ await adapter.disconnect();
 ```typescript
 // src/renderer/lib/adapters/grpc-adapter.ts
 
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import { GrpcRequest, GrpcResponse } from '@/types';
+import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
+import { GrpcRequest, GrpcResponse } from "@/types";
 
 export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
   private client?: grpc.Client;
@@ -579,12 +589,15 @@ export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
       const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
       // Get service constructor
-      const ServiceClient = this.getServiceClient(protoDescriptor, request.service);
+      const ServiceClient = this.getServiceClient(
+        protoDescriptor,
+        request.service,
+      );
 
       // Create client
       this.client = new ServiceClient(
         request.url,
-        grpc.credentials.createInsecure()
+        grpc.credentials.createInsecure(),
       );
 
       // Make request based on type
@@ -610,7 +623,7 @@ export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
     return new Promise((resolve, reject) => {
       const method = this.client![request.method];
 
-      if (request.streamType === 'unary') {
+      if (request.streamType === "unary") {
         this.call = method.call(
           this.client,
           request.data,
@@ -620,21 +633,21 @@ export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
             } else {
               resolve(response);
             }
-          }
+          },
         );
-      } else if (request.streamType === 'server-stream') {
+      } else if (request.streamType === "server-stream") {
         const messages: any[] = [];
         this.call = method.call(this.client, request.data);
 
-        (this.call as grpc.ClientReadableStream<any>).on('data', (chunk) => {
+        (this.call as grpc.ClientReadableStream<any>).on("data", (chunk) => {
           messages.push(chunk);
         });
 
-        (this.call as grpc.ClientReadableStream<any>).on('end', () => {
+        (this.call as grpc.ClientReadableStream<any>).on("end", () => {
           resolve(messages);
         });
 
-        (this.call as grpc.ClientReadableStream<any>).on('error', (error) => {
+        (this.call as grpc.ClientReadableStream<any>).on("error", (error) => {
           reject(error);
         });
       }
@@ -642,7 +655,7 @@ export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
   }
 
   private getServiceClient(protoDescriptor: any, servicePath: string): any {
-    const parts = servicePath.split('.');
+    const parts = servicePath.split(".");
     let current = protoDescriptor;
 
     for (const part of parts) {
@@ -671,36 +684,36 @@ export class GrpcAdapter implements ProtocolAdapter<GrpcRequest, GrpcResponse> {
 ```typescript
 // src/renderer/lib/adapters/index.ts
 
-import { ProtocolType } from '@/types';
-import { HttpAdapter } from './http-adapter';
-import { WebSocketAdapter } from './websocket-adapter';
-import { SocketIOAdapter } from './socketio-adapter';
-import { SSEAdapter } from './sse-adapter';
-import { GrpcAdapter } from './grpc-adapter';
+import { ProtocolType } from "@/types";
+import { HttpAdapter } from "./http-adapter";
+import { WebSocketAdapter } from "./websocket-adapter";
+import { SocketIOAdapter } from "./socketio-adapter";
+import { SSEAdapter } from "./sse-adapter";
+import { GrpcAdapter } from "./grpc-adapter";
 
 export function createAdapter(protocol: ProtocolType) {
   switch (protocol) {
-    case 'http':
+    case "http":
       return new HttpAdapter();
-    case 'websocket':
+    case "websocket":
       return new WebSocketAdapter();
-    case 'socketio':
+    case "socketio":
       return new SocketIOAdapter();
-    case 'sse':
+    case "sse":
       return new SSEAdapter();
-    case 'grpc':
+    case "grpc":
       return new GrpcAdapter();
     default:
       throw new Error(`Unknown protocol: ${protocol}`);
   }
 }
 
-export * from './base';
-export * from './http-adapter';
-export * from './websocket-adapter';
-export * from './socketio-adapter';
-export * from './sse-adapter';
-export * from './grpc-adapter';
+export * from "./base";
+export * from "./http-adapter";
+export * from "./websocket-adapter";
+export * from "./socketio-adapter";
+export * from "./sse-adapter";
+export * from "./grpc-adapter";
 ```
 
 ## Testing Adapters
@@ -708,35 +721,35 @@ export * from './grpc-adapter';
 ### HTTP Adapter Tests
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { HttpAdapter } from './http-adapter';
+import { describe, it, expect, vi } from "vitest";
+import { HttpAdapter } from "./http-adapter";
 
-describe('HttpAdapter', () => {
-  it('should make GET request', async () => {
+describe("HttpAdapter", () => {
+  it("should make GET request", async () => {
     const adapter = new HttpAdapter();
 
     const response = await adapter.execute({
-      method: 'GET',
-      url: 'https://jsonplaceholder.typicode.com/posts/1',
+      method: "GET",
+      url: "https://jsonplaceholder.typicode.com/posts/1",
       headers: {},
     });
 
     expect(response.status).toBe(200);
-    expect(response.data).toHaveProperty('id', 1);
+    expect(response.data).toHaveProperty("id", 1);
   });
 
-  it('should cancel request', async () => {
+  it("should cancel request", async () => {
     const adapter = new HttpAdapter();
 
     const promise = adapter.execute({
-      method: 'GET',
-      url: 'https://httpbin.org/delay/5',
+      method: "GET",
+      url: "https://httpbin.org/delay/5",
       headers: {},
     });
 
     setTimeout(() => adapter.cancel(), 100);
 
-    await expect(promise).rejects.toThrow('Request cancelled');
+    await expect(promise).rejects.toThrow("Request cancelled");
   });
 });
 ```
@@ -744,36 +757,36 @@ describe('HttpAdapter', () => {
 ### WebSocket Adapter Tests
 
 ```typescript
-describe('WebSocketAdapter', () => {
-  it('should connect and disconnect', async () => {
+describe("WebSocketAdapter", () => {
+  it("should connect and disconnect", async () => {
     const adapter = new WebSocketAdapter();
 
-    await adapter.connect({ url: 'wss://echo.websocket.org' });
-    expect(adapter.getStatus()).toBe('connected');
+    await adapter.connect({ url: "wss://echo.websocket.org" });
+    expect(adapter.getStatus()).toBe("connected");
 
     await adapter.disconnect();
-    expect(adapter.getStatus()).toBe('disconnected');
+    expect(adapter.getStatus()).toBe("disconnected");
   });
 
-  it('should send and receive messages', async () => {
+  it("should send and receive messages", async () => {
     const adapter = new WebSocketAdapter();
     const messages: any[] = [];
 
-    adapter.on('message', (msg) => messages.push(msg));
+    adapter.on("message", (msg) => messages.push(msg));
 
-    await adapter.connect({ url: 'wss://echo.websocket.org' });
+    await adapter.connect({ url: "wss://echo.websocket.org" });
 
     await adapter.send({
-      id: '1',
-      type: 'sent',
-      data: 'test',
+      id: "1",
+      type: "sent",
+      data: "test",
       timestamp: Date.now(),
     });
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     expect(messages).toHaveLength(2); // sent + received
-    expect(messages[1].type).toBe('received');
+    expect(messages[1].type).toBe("received");
   });
 });
 ```
@@ -781,35 +794,35 @@ describe('WebSocketAdapter', () => {
 ### SSE Adapter Tests
 
 ```typescript
-describe('SSEAdapter', () => {
-  it('should connect and disconnect', async () => {
+describe("SSEAdapter", () => {
+  it("should connect and disconnect", async () => {
     const adapter = new SSEAdapter();
 
     await adapter.connect({
-      url: 'https://api.example.com/events',
-      protocol: 'sse',
-      id: '1',
-      name: 'Test SSE',
+      url: "https://api.example.com/events",
+      protocol: "sse",
+      id: "1",
+      name: "Test SSE",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    expect(adapter.getStatus()).toBe('connected');
+    expect(adapter.getStatus()).toBe("connected");
 
     await adapter.disconnect();
-    expect(adapter.getStatus()).toBe('disconnected');
+    expect(adapter.getStatus()).toBe("disconnected");
   });
 
-  it('should receive messages', async () => {
+  it("should receive messages", async () => {
     const adapter = new SSEAdapter();
     const messages: any[] = [];
 
-    adapter.on('message', (msg) => messages.push(msg));
+    adapter.on("message", (msg) => messages.push(msg));
 
     await adapter.connect({
-      url: 'https://api.example.com/events',
-      protocol: 'sse',
-      id: '1',
-      name: 'Test SSE',
+      url: "https://api.example.com/events",
+      protocol: "sse",
+      id: "1",
+      name: "Test SSE",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -818,49 +831,49 @@ describe('SSEAdapter', () => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     expect(messages.length).toBeGreaterThan(0);
-    expect(messages[0].type).toBe('event');
+    expect(messages[0].type).toBe("event");
   });
 
-  it('should handle custom event types', async () => {
+  it("should handle custom event types", async () => {
     const adapter = new SSEAdapter();
     const messages: any[] = [];
 
-    adapter.on('message', (msg) => messages.push(msg));
+    adapter.on("message", (msg) => messages.push(msg));
 
     await adapter.connect({
-      url: 'https://api.example.com/events',
-      protocol: 'sse',
-      id: '1',
-      name: 'Test SSE',
+      url: "https://api.example.com/events",
+      protocol: "sse",
+      id: "1",
+      name: "Test SSE",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
 
-    adapter.listenToEvent('notification');
-    adapter.listenToEvent('update');
+    adapter.listenToEvent("notification");
+    adapter.listenToEvent("update");
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const customEvents = messages.filter(m =>
-      m.event?.event === 'notification' || m.event?.event === 'update'
+    const customEvents = messages.filter(
+      (m) => m.event?.event === "notification" || m.event?.event === "update",
     );
     expect(customEvents.length).toBeGreaterThan(0);
   });
 
-  it('should throw error on send attempt', async () => {
+  it("should throw error on send attempt", async () => {
     const adapter = new SSEAdapter();
 
     await adapter.connect({
-      url: 'https://api.example.com/events',
-      protocol: 'sse',
-      id: '1',
-      name: 'Test SSE',
+      url: "https://api.example.com/events",
+      protocol: "sse",
+      id: "1",
+      name: "Test SSE",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
 
     await expect(adapter.send(null as never)).rejects.toThrow(
-      'SSE is unidirectional'
+      "SSE is unidirectional",
     );
   });
 });
@@ -876,8 +889,8 @@ Always handle errors gracefully and provide useful error messages:
 try {
   const response = await adapter.execute(request);
 } catch (error) {
-  if (error.code === 'ECONNREFUSED') {
-    throw new Error('Connection refused. Is the server running?');
+  if (error.code === "ECONNREFUSED") {
+    throw new Error("Connection refused. Is the server running?");
   }
   throw error;
 }
@@ -925,9 +938,9 @@ adapter.cancel();
 Use standard event patterns for consistency:
 
 ```typescript
-adapter.on('event', callback);
-adapter.off('event', callback);
-adapter.emit('event', data);
+adapter.on("event", callback);
+adapter.off("event", callback);
+adapter.emit("event", data);
 ```
 
 ## Adding a New Protocol
@@ -935,6 +948,7 @@ adapter.emit('event', data);
 1. **Create adapter file**: `src/renderer/lib/adapters/new-protocol-adapter.ts`
 
 2. **Implement interface**:
+
 ```typescript
 export class NewProtocolAdapter implements ProtocolAdapter<Config, Response> {
   async execute(config: Config): Promise<Response> {

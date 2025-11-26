@@ -1,55 +1,58 @@
 // WebSocket Request Builder component
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Plug, Loader2, XCircle, Activity, Send } from 'lucide-react';
-import { useConnection } from '../hooks';
-import type { WebSocketConfig, WebSocketMessage } from '@/types';
-import { KeyValueEditor } from './key-value-editor';
-import { useSetAtom } from 'jotai';
-import { clearMessagesAtom } from '@/stores/connection-atoms';
-import { Badge } from '@/components/ui/badge';
-import { useEffect, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
-import { xml } from '@codemirror/lang-xml';
-import { html } from '@codemirror/lang-html';
-import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
+} from "@/components/ui/select";
+import { Plug, Loader2, XCircle, Activity, Send } from "lucide-react";
+import { useConnection } from "../hooks";
+import type { WebSocketConfig, WebSocketMessage } from "@/types";
+import { KeyValueEditor } from "./key-value-editor";
+import { useSetAtom } from "jotai";
+import { clearMessagesAtom } from "@/stores/connection-atoms";
+import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { xml } from "@codemirror/lang-xml";
+import { html } from "@codemirror/lang-html";
+import { useCodeMirrorTheme } from "@/lib/hooks/use-codemirror-theme";
 
 interface WebSocketBuilderProps {
   request: WebSocketConfig;
   onRequestChange?: (request: WebSocketConfig) => void;
 }
 
-export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderProps) {
-  const { connection, connect, disconnect, sendMessage } = useConnection(request.id, request);
+export function WebSocketBuilder({
+  request,
+  onRequestChange,
+}: WebSocketBuilderProps) {
+  const { connection, connect, disconnect, sendMessage } = useConnection(
+    request.id,
+    request,
+  );
   const clearMessages = useSetAtom(clearMessagesAtom);
 
   // Message composer state
-  const [messageFormat, setMessageFormat] = useState<'text' | 'json' | 'xml' | 'html' | 'binary'>(
-    request.draftMessage?.format || 'text'
+  const [messageFormat, setMessageFormat] = useState<
+    "text" | "json" | "xml" | "html" | "binary"
+  >(request.draftMessage?.format || "text");
+  const [messageContent, setMessageContent] = useState(
+    request.draftMessage?.content || "",
   );
-  const [messageContent, setMessageContent] = useState(request.draftMessage?.content || '');
   const [isSending, setIsSending] = useState(false);
 
   // CodeMirror theme
@@ -60,8 +63,8 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
     basicSetup,
     wrapperClass,
   } = useCodeMirrorTheme({
-    styleId: 'codemirror-websocket-message-theme',
-    wrapperClass: 'codemirror-websocket-message',
+    styleId: "codemirror-websocket-message-theme",
+    wrapperClass: "codemirror-websocket-message",
     basicSetupOverrides: {
       highlightActiveLine: false,
     },
@@ -76,10 +79,10 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
   //   };
   // }, [request.id, setSelectedConnectionId]);
 
-  const isConnected = connection?.status === 'connected';
-  const isConnecting = connection?.status === 'connecting';
-  const isDisconnecting = connection?.status === 'disconnecting';
-  const hasError = connection?.status === 'error';
+  const isConnected = connection?.status === "connected";
+  const isConnecting = connection?.status === "connecting";
+  const isDisconnecting = connection?.status === "disconnecting";
+  const hasError = connection?.status === "error";
 
   const handleConnect = async () => {
     try {
@@ -87,7 +90,7 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
       clearMessages(request.id);
       await connect();
     } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
+      console.error("Failed to connect to WebSocket:", error);
     }
   };
 
@@ -95,7 +98,7 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
     try {
       await disconnect();
     } catch (error) {
-      console.error('Failed to disconnect:', error);
+      console.error("Failed to disconnect:", error);
     }
   };
 
@@ -106,7 +109,7 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
     try {
       const message: WebSocketMessage = {
         id: crypto.randomUUID(),
-        type: 'sent',
+        type: "sent",
         data: messageContent,
         timestamp: Date.now(),
         format: messageFormat,
@@ -115,7 +118,7 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
       await sendMessage(message);
       // Don't clear input after sending - keep it for potential re-sending
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     } finally {
       setIsSending(false);
     }
@@ -176,28 +179,32 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
         </Badge>
       );
     }
-    return (
-      <Badge variant="outline">
-        Disconnected
-      </Badge>
-    );
+    return <Badge variant="outline">Disconnected</Badge>;
   };
 
   const getLanguageExtension = () => {
     switch (messageFormat) {
-      case 'json': return json();
-      case 'xml': return xml();
-      case 'html': return html();
-      default: return []; // plain text, no syntax highlighting
+      case "json":
+        return json();
+      case "xml":
+        return xml();
+      case "html":
+        return html();
+      default:
+        return []; // plain text, no syntax highlighting
     }
   };
 
   const getPlaceholder = () => {
     switch (messageFormat) {
-      case 'json': return '{\n  "message": "Hello WebSocket"\n}';
-      case 'xml': return '<?xml version="1.0"?>\n<message>Hello WebSocket</message>';
-      case 'html': return '<div>Hello WebSocket</div>';
-      default: return 'Enter your message here...';
+      case "json":
+        return '{\n  "message": "Hello WebSocket"\n}';
+      case "xml":
+        return '<?xml version="1.0"?>\n<message>Hello WebSocket</message>';
+      case "html":
+        return "<div>Hello WebSocket</div>";
+      default:
+        return "Enter your message here...";
     }
   };
 
@@ -208,7 +215,8 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
           <div>
             <CardTitle>WebSocket</CardTitle>
             <CardDescription>
-              Connect to WebSocket server for bidirectional real-time communication
+              Connect to WebSocket server for bidirectional real-time
+              communication
             </CardDescription>
           </div>
           {getStatusBadge()}
@@ -279,7 +287,9 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
                 <label className="text-sm font-medium">Format:</label>
                 <Select
                   value={messageFormat}
-                  onValueChange={(value) => handleMessageFormatChange(value as typeof messageFormat)}
+                  onValueChange={(value) =>
+                    handleMessageFormatChange(value as typeof messageFormat)
+                  }
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue />
@@ -299,7 +309,11 @@ export function WebSocketBuilder({ request, onRequestChange }: WebSocketBuilderP
                   value={messageContent}
                   onChange={handleMessageContentChange}
                   placeholder={getPlaceholder()}
-                  extensions={[getLanguageExtension(), customTheme, customHighlighting]}
+                  extensions={[
+                    getLanguageExtension(),
+                    customTheme,
+                    customHighlighting,
+                  ]}
                   height="200px"
                   basicSetup={basicSetup}
                   style={editorStyle}

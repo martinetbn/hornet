@@ -1,16 +1,26 @@
 // Hook for handling collection drag-and-drop operations
 
-import { useCallback } from 'react';
-import type { DragEndEvent } from '@dnd-kit/core';
-import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
-import { removeItemFromTree, addToFolderInTree, isFolder } from '../utils/collection-tree-utils';
+import { useCallback } from "react";
+import type { DragEndEvent } from "@dnd-kit/core";
+import type {
+  CollectionItem,
+  CollectionFolder,
+} from "@/stores/collection-atoms";
+import {
+  removeItemFromTree,
+  addToFolderInTree,
+  isFolder,
+} from "../utils/collection-tree-utils";
 
 interface UseCollectionDragDropProps {
   collections: CollectionItem[];
   setCollections: (collections: CollectionItem[]) => void;
 }
 
-export function useCollectionDragDrop({ collections, setCollections }: UseCollectionDragDropProps) {
+export function useCollectionDragDrop({
+  collections,
+  setCollections,
+}: UseCollectionDragDropProps) {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
@@ -25,10 +35,10 @@ export function useCollectionDragDrop({ collections, setCollections }: UseCollec
       let updatedCollections = removeItemFromTree(collections, draggedItem.id);
 
       // Add item to new location
-      if (over.id === 'root-droppable') {
+      if (over.id === "root-droppable") {
         // Add to end of root level
         updatedCollections = [...updatedCollections, draggedItem];
-      } else if (over.id === 'root-top') {
+      } else if (over.id === "root-top") {
         // Add to beginning of root level
         updatedCollections = [draggedItem, ...updatedCollections];
       } else {
@@ -38,14 +48,14 @@ export function useCollectionDragDrop({ collections, setCollections }: UseCollec
           updatedCollections = addToFolderInTree(
             updatedCollections,
             targetFolder.id,
-            draggedItem
+            draggedItem,
           );
         }
       }
 
       setCollections(updatedCollections);
     },
-    [collections, setCollections]
+    [collections, setCollections],
   );
 
   return { handleDragEnd };

@@ -1,9 +1,13 @@
 // HTTP Protocol Adapter
 
-import axios from 'axios';
-import type { AxiosInstance, AxiosRequestConfig, CancelTokenSource } from 'axios';
-import type { HttpRequest, HttpResponse, SSEMessage, SSEEvent } from '@/types';
-import type { ProtocolAdapter } from './base';
+import axios from "axios";
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  CancelTokenSource,
+} from "axios";
+import type { HttpRequest, HttpResponse, SSEMessage, SSEEvent } from "@/types";
+import type { ProtocolAdapter } from "./base";
 
 export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   private client: AxiosInstance;
@@ -11,7 +15,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   private abortController?: AbortController;
   private reader?: ReadableStreamDefaultReader<Uint8Array>;
   private eventListeners = new Map<string, Set<Function>>();
-  private buffer = '';
+  private buffer = "";
   private isStreaming = false;
 
   constructor() {
@@ -47,7 +51,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       });
 
       // GET and HEAD methods cannot have a body
-      const canHaveBody = request.method !== 'GET' && request.method !== 'HEAD';
+      const canHaveBody = request.method !== "GET" && request.method !== "HEAD";
 
       // Make initial request with fetch to check headers
       this.abortController = new AbortController();
@@ -55,7 +59,9 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       const fetchResponse = await fetch(url.toString(), {
         method: request.method,
         headers,
-        ...(canHaveBody && request.body?.content ? { body: request.body.content } : {}),
+        ...(canHaveBody && request.body?.content
+          ? { body: request.body.content }
+          : {}),
         signal: this.abortController.signal,
       });
 
@@ -65,12 +71,18 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       });
 
       // Check if this is an SSE endpoint
-      const contentType = responseHeaders['content-type'] || '';
-      const isSSE = contentType.includes('text/event-stream');
+      const contentType = responseHeaders["content-type"] || "";
+      const isSSE = contentType.includes("text/event-stream");
 
       // If it's SSE, automatically start streaming
       if (isSSE) {
-        return await this.startStreaming(request, url.toString(), headers, startTime, fetchResponse);
+        return await this.startStreaming(
+          request,
+          url.toString(),
+          headers,
+          startTime,
+          fetchResponse,
+        );
       }
 
       // For non-SSE, abort fetch and use axios for better handling
@@ -83,7 +95,9 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         method: request.method,
         url: url.toString(),
         headers,
-        ...(canHaveBody && request.body?.content ? { data: request.body.content } : {}),
+        ...(canHaveBody && request.body?.content
+          ? { data: request.body.content }
+          : {}),
         cancelToken: this.cancelToken.token,
         timeout: request.timeout,
       };
@@ -102,17 +116,17 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         isSSE: false,
       };
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         // This is expected when we abort to switch to axios
-        throw new Error('Request aborted');
+        throw new Error("Request aborted");
       }
 
       if (axios.isCancel(error)) {
-        throw new Error('Request cancelled');
+        throw new Error("Request cancelled");
       }
 
       if (axios.isAxiosError(error)) {
-        throw new Error(error.message || 'Request failed');
+        throw new Error(error.message || "Request failed");
       }
 
       throw error;
@@ -124,7 +138,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
     url: string,
     headers: Record<string, string>,
     startTime: number,
-    fetchResponse: Response
+    fetchResponse: Response,
   ): Promise<HttpResponse> {
     this.isStreaming = true;
 
@@ -135,7 +149,9 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       });
 
       if (!fetchResponse.ok) {
-        throw new Error(`HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`);
+        throw new Error(
+          `HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`,
+        );
       }
 
       const endTime = Date.now();
@@ -143,10 +159,10 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
       // Emit connected message
       const connectedMessage: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'connected',
+        type: "connected",
         timestamp: Date.now(),
       };
-      this.emit('message', connectedMessage);
+      this.emit("message", connectedMessage);
 
       // Start reading the stream in background
       if (fetchResponse.body) {
@@ -158,7 +174,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         status: fetchResponse.status,
         statusText: fetchResponse.statusText,
         headers: responseHeaders,
-        data: 'Connected to SSE stream. Messages will appear below.',
+        data: "Connected to SSE stream. Messages will appear below.",
         duration: endTime - startTime,
         size: 0,
         timestamp: endTime,
@@ -170,12 +186,15 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 
       const errorMessage: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'error',
-        error: error instanceof Error ? error.message : 'Failed to establish connection',
+        type: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to establish connection",
         timestamp: Date.now(),
       };
-      this.emit('message', errorMessage);
-      this.emit('error', error);
+      this.emit("message", errorMessage);
+      this.emit("error", error);
 
       throw error;
     }
@@ -192,7 +211,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 
         if (done) {
           this.isStreaming = false;
-          this.emit('disconnected');
+          this.emit("disconnected");
           break;
         }
 
@@ -201,8 +220,8 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         this.buffer += chunk;
 
         // Process complete messages (separated by double newline)
-        const messages = this.buffer.split('\n\n');
-        this.buffer = messages.pop() || ''; // Keep incomplete message in buffer
+        const messages = this.buffer.split("\n\n");
+        this.buffer = messages.pop() || ""; // Keep incomplete message in buffer
 
         for (const message of messages) {
           if (message.trim()) {
@@ -211,7 +230,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
         }
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         // Normal disconnection
         return;
       }
@@ -220,36 +239,36 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 
       const errorMessage: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'error',
-        error: error instanceof Error ? error.message : 'Stream error',
+        type: "error",
+        error: error instanceof Error ? error.message : "Stream error",
         timestamp: Date.now(),
       };
-      this.emit('message', errorMessage);
-      this.emit('error', error);
+      this.emit("message", errorMessage);
+      this.emit("error", error);
     }
   }
 
   private parseSSEMessage(raw: string): void {
-    const lines = raw.split('\n');
-    let eventType = 'message';
-    let data = '';
-    let id = '';
+    const lines = raw.split("\n");
+    let eventType = "message";
+    let data = "";
+    let id = "";
     let retry: number | undefined;
 
     for (const line of lines) {
-      if (line.startsWith('event:')) {
+      if (line.startsWith("event:")) {
         eventType = line.slice(6).trim();
-      } else if (line.startsWith('data:')) {
-        data += line.slice(5).trim() + '\n';
-      } else if (line.startsWith('id:')) {
+      } else if (line.startsWith("data:")) {
+        data += line.slice(5).trim() + "\n";
+      } else if (line.startsWith("id:")) {
         id = line.slice(3).trim();
-      } else if (line.startsWith('retry:')) {
+      } else if (line.startsWith("retry:")) {
         retry = parseInt(line.slice(6).trim(), 10);
       }
     }
 
     // Remove trailing newline from data
-    data = data.replace(/\n$/, '');
+    data = data.replace(/\n$/, "");
 
     if (data) {
       const sseEvent: SSEEvent = {
@@ -262,12 +281,12 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
 
       const message: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'event',
+        type: "event",
         event: sseEvent,
         timestamp: Date.now(),
       };
 
-      this.emit('message', message);
+      this.emit("message", message);
     }
   }
 
@@ -291,15 +310,15 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
     }
 
     this.isStreaming = false;
-    this.buffer = '';
+    this.buffer = "";
 
     const message: SSEMessage = {
       id: crypto.randomUUID(),
-      type: 'disconnected',
+      type: "disconnected",
       timestamp: Date.now(),
     };
-    this.emit('message', message);
-    this.emit('disconnected');
+    this.emit("message", message);
+    this.emit("disconnected");
   }
 
   public on(event: string, callback: (data: unknown) => void): void {
@@ -318,7 +337,7 @@ export class HttpAdapter implements ProtocolAdapter<HttpRequest, HttpResponse> {
   }
 
   cancel(): void {
-    this.cancelToken?.cancel('Request cancelled by user');
+    this.cancelToken?.cancel("Request cancelled by user");
     if (this.isStreaming) {
       this.disconnectStream();
     }

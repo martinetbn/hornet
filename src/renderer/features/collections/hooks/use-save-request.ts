@@ -1,7 +1,7 @@
 // Hook for handling request save operations and keyboard shortcuts
 
-import { useCallback, useEffect } from 'react';
-import type { Tab, HttpRequest } from '@/stores/collection-atoms';
+import { useCallback, useEffect } from "react";
+import type { Tab, HttpRequest } from "@/stores/collection-atoms";
 
 interface UseSaveRequestProps {
   activeTab: Tab | null;
@@ -41,23 +41,25 @@ export function useSaveRequest({
       saveRequest(activeTab.request as HttpRequest, folderId);
 
       // Update tab with new path and clear dirty flag
-      const newPath = findPath(activeTab.request.id) || [activeTab.request.name];
+      const newPath = findPath(activeTab.request.id) || [
+        activeTab.request.name,
+      ];
       updateTab(activeTab.id, { path: newPath, isDirty: false });
     },
-    [activeTab, saveRequest, findPath, updateTab]
+    [activeTab, saveRequest, findPath, updateTab],
   );
 
   // Add keyboard shortcut for save (Ctrl/Cmd + S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         handleSave();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSave]);
 
   return { handleSave, handleSaveToFolder };

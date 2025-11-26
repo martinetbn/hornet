@@ -1,18 +1,18 @@
 // Variables management dialog component
 
-import { useState } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
-import { Plus, Trash2, Check, X } from 'lucide-react';
+import { useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { Plus, Trash2, Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -20,11 +20,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { variablesAtom } from '@/stores/environment-atoms';
-import { activeWorkspaceIdAtom } from '@/stores/workspace-atoms';
-import type { Variable } from '@/types';
-import { nanoid } from 'nanoid';
+} from "@/components/ui/table";
+import { variablesAtom } from "@/stores/environment-atoms";
+import { activeWorkspaceIdAtom } from "@/stores/workspace-atoms";
+import type { Variable } from "@/types";
+import { nanoid } from "nanoid";
 
 interface VariablesDialogProps {
   open: boolean;
@@ -40,21 +40,21 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
     if (v.workspaceId) {
       return v.workspaceId === activeWorkspaceId;
     }
-    return activeWorkspaceId === 'default';
+    return activeWorkspaceId === "default";
   });
 
-  const [newKey, setNewKey] = useState('');
-  const [newValue, setNewValue] = useState('');
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editKey, setEditKey] = useState('');
-  const [editValue, setEditValue] = useState('');
+  const [editKey, setEditKey] = useState("");
+  const [editValue, setEditValue] = useState("");
 
   const updateVariables = (newWorkspaceVariables: Variable[]) => {
     const otherVariables = allVariables.filter((v) => {
       if (v.workspaceId) {
         return v.workspaceId !== activeWorkspaceId;
       }
-      return activeWorkspaceId !== 'default';
+      return activeWorkspaceId !== "default";
     });
     setAllVariables([...otherVariables, ...newWorkspaceVariables]);
   };
@@ -71,8 +71,8 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
     };
 
     updateVariables([...variables, newVariable]);
-    setNewKey('');
-    setNewValue('');
+    setNewKey("");
+    setNewValue("");
   };
 
   const handleDeleteVariable = (id: string) => {
@@ -81,9 +81,7 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
 
   const handleToggleVariable = (id: string) => {
     updateVariables(
-      variables.map((v) =>
-        v.id === id ? { ...v, enabled: !v.enabled } : v
-      )
+      variables.map((v) => (v.id === id ? { ...v, enabled: !v.enabled } : v)),
     );
   };
 
@@ -100,18 +98,18 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
       variables.map((v) =>
         v.id === editingId
           ? { ...v, key: editKey.trim(), value: editValue.trim() }
-          : v
-      )
+          : v,
+      ),
     );
     setEditingId(null);
-    setEditKey('');
-    setEditValue('');
+    setEditKey("");
+    setEditValue("");
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditKey('');
-    setEditValue('');
+    setEditKey("");
+    setEditValue("");
   };
 
   return (
@@ -120,7 +118,8 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
         <DialogHeader>
           <DialogTitle>Variables</DialogTitle>
           <DialogDescription>
-            Manage global variables. Use [[variableName]] syntax in URLs, headers, params, and request bodies.
+            Manage global variables. Use [[variableName]] syntax in URLs,
+            headers, params, and request bodies.
           </DialogDescription>
         </DialogHeader>
 
@@ -223,7 +222,7 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
                     placeholder="Variable name"
                     className="h-8"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddVariable();
+                      if (e.key === "Enter") handleAddVariable();
                     }}
                   />
                 </TableCell>
@@ -234,7 +233,7 @@ export function VariablesDialog({ open, onOpenChange }: VariablesDialogProps) {
                     placeholder="Value"
                     className="h-8"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddVariable();
+                      if (e.key === "Enter") handleAddVariable();
                     }}
                   />
                 </TableCell>

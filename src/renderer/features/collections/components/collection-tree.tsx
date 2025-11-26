@@ -5,18 +5,16 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
+import type { DragEndEvent, DragOverEvent } from "@dnd-kit/core";
+import { SidebarMenu } from "@/components/ui/sidebar";
 import type {
-  DragEndEvent,
-  DragOverEvent,
-} from '@dnd-kit/core';
-import {
-  SidebarMenu,
-} from '@/components/ui/sidebar';
-import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
-import { CollectionTreeItem } from './collection-tree-item';
-import { RootDroppable, RootTopDroppable } from './root-droppable';
-import { useState } from 'react';
+  CollectionItem,
+  CollectionFolder,
+} from "@/stores/collection-atoms";
+import { CollectionTreeItem } from "./collection-tree-item";
+import { RootDroppable, RootTopDroppable } from "./root-droppable";
+import { useState } from "react";
 
 interface CollectionTreeProps {
   collections: CollectionItem[];
@@ -35,14 +33,14 @@ export function CollectionTree({
 }: CollectionTreeProps) {
   const [overId, setOverId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renamingValue, setRenamingValue] = useState('');
+  const [renamingValue, setRenamingValue] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    })
+    }),
   );
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -61,15 +59,18 @@ export function CollectionTree({
 
   const confirmRename = () => {
     if (renamingId && renamingValue.trim()) {
-      onRename?.({ id: renamingId, name: renamingValue.trim() } as CollectionItem);
+      onRename?.({
+        id: renamingId,
+        name: renamingValue.trim(),
+      } as CollectionItem);
     }
     setRenamingId(null);
-    setRenamingValue('');
+    setRenamingValue("");
   };
 
   const cancelRename = () => {
     setRenamingId(null);
-    setRenamingValue('');
+    setRenamingValue("");
   };
 
   if (collections.length === 0) {
@@ -81,7 +82,11 @@ export function CollectionTree({
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver}>
+    <DndContext
+      sensors={sensors}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+    >
       <RootTopDroppable overId={overId} />
       <RootDroppable overId={overId}>
         <SidebarMenu>

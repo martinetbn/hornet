@@ -1,6 +1,6 @@
 // Main application sidebar component
 
-import type { DragEndEvent } from '@dnd-kit/core';
+import type { DragEndEvent } from "@dnd-kit/core";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import {
   SidebarGroupContent,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,12 +22,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Variable, Plus, ChevronsUpDown, Check, PlusCircle, Settings2, Trash2 } from 'lucide-react';
-import { CollectionTree } from '@/features/collections/components';
-import type { CollectionItem } from '@/stores/collection-atoms';
-import type { Workspace } from '@/types/workspace';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+  Variable,
+  Plus,
+  ChevronsUpDown,
+  Check,
+  PlusCircle,
+  Settings2,
+  Trash2,
+} from "lucide-react";
+import { CollectionTree } from "@/features/collections/components";
+import type { CollectionItem } from "@/stores/collection-atoms";
+import type { Workspace } from "@/types/workspace";
 
 interface AppSidebarProps {
   collections: CollectionItem[];
@@ -63,7 +71,11 @@ export function AppSidebar({
   const { isMobile } = useSidebar();
 
   return (
-    <Sidebar collapsible="none" side="left" className="border-r w-full h-screen overflow-x-hidden overflow-y-auto">
+    <Sidebar
+      collapsible="none"
+      side="left"
+      className="border-r w-full h-screen overflow-x-hidden overflow-y-auto"
+    >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -77,8 +89,12 @@ export function AppSidebar({
                     {activeWorkspace.name.charAt(0)}
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{activeWorkspace.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">Hornet</span>
+                    <span className="truncate font-semibold">
+                      {activeWorkspace.name}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      Hornet
+                    </span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -86,7 +102,7 @@ export function AppSidebar({
               <DropdownMenuContent
                 className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
                 align="start"
-                side={isMobile ? 'bottom' : 'right'}
+                side={isMobile ? "bottom" : "right"}
                 sideOffset={4}
               >
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
@@ -108,20 +124,27 @@ export function AppSidebar({
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 p-2" onClick={onWorkspaceCreate}>
+                <DropdownMenuItem
+                  className="gap-2 p-2"
+                  onClick={onWorkspaceCreate}
+                >
                   <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                     <Plus className="size-4" />
                   </div>
-                  <div className="font-medium text-muted-foreground">Add workspace</div>
+                  <div className="font-medium text-muted-foreground">
+                    Add workspace
+                  </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => onWorkspaceEdit(activeWorkspace)}>
+                  <DropdownMenuItem
+                    onClick={() => onWorkspaceEdit(activeWorkspace)}
+                  >
                     <Settings2 className="mr-2 size-4" />
                     Edit Workspace
                   </DropdownMenuItem>
                   {workspaces.length > 1 && (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onWorkspaceDelete(activeWorkspace.id)}
                       className="text-red-500 focus:text-red-500"
                     >

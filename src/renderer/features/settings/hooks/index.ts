@@ -1,3 +1,3 @@
 // Export all settings hooks
 
-export * from './use-theme';
+export * from "./use-theme";

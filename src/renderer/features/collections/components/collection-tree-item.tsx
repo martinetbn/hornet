@@ -1,40 +1,52 @@
 // Individual tree item (file or folder) in collection tree
 
-import { useEffect, useRef, useState } from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { useEffect, useRef, useState } from "react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+} from "@/components/ui/context-menu";
 import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuSub,
-} from '@/components/ui/sidebar';
-import { Input } from '@/components/ui/input';
-import { Folder, File, ChevronRight, Globe, Radio, Activity, Zap, Plug } from 'lucide-react';
-import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
-import type { Request } from '@/types/request';
+} from "@/components/ui/sidebar";
+import { Input } from "@/components/ui/input";
+import {
+  Folder,
+  File,
+  ChevronRight,
+  Globe,
+  Radio,
+  Activity,
+  Zap,
+  Plug,
+} from "lucide-react";
+import type {
+  CollectionItem,
+  CollectionFolder,
+} from "@/stores/collection-atoms";
+import type { Request } from "@/types/request";
 
 // Helper function to get protocol-specific icon
 function getProtocolIcon(request: Request) {
   const iconClass = "shrink-0";
 
   switch (request.protocol) {
-    case 'http':
+    case "http":
       return <Globe className={`${iconClass} text-blue-500`} />;
-    case 'websocket':
+    case "websocket":
       return <Plug className={`${iconClass} text-green-500`} />;
-    case 'socketio':
+    case "socketio":
       return <Activity className={`${iconClass} text-orange-500`} />;
-    case 'grpc':
+    case "grpc":
       return <Zap className={`${iconClass} text-yellow-500`} />;
     default:
       return <File className={iconClass} />;
@@ -70,12 +82,17 @@ export function CollectionTreeItem({
 }: CollectionTreeItemProps) {
   const currentPath = [...path, item.name];
   const isRenaming = renamingId === item.id;
-  const isFolder = 'type' in item && item.type === 'folder';
+  const isFolder = "type" in item && item.type === "folder";
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
     id: item.id,
-    data: { item, type: isFolder ? 'folder' : 'request' },
+    data: { item, type: isFolder ? "folder" : "request" },
   });
 
   const isOver = overId === item.id;
@@ -100,7 +117,10 @@ export function CollectionTreeItem({
         {isOver && (
           <div className="absolute -top-0.5 left-0 right-0 h-0.5 bg-primary rounded-full" />
         )}
-        <div ref={setDragRef} {...(isRenaming ? {} : { ...attributes, ...listeners })}>
+        <div
+          ref={setDragRef}
+          {...(isRenaming ? {} : { ...attributes, ...listeners })}
+        >
           {isRenaming ? (
             <SidebarMenuButton className="cursor-text">
               {getProtocolIcon(request)}
@@ -109,10 +129,10 @@ export function CollectionTreeItem({
                 value={renamingValue}
                 onChange={(e) => onRenamingValueChange?.(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     onConfirmRename?.();
-                  } else if (e.key === 'Escape') {
+                  } else if (e.key === "Escape") {
                     e.preventDefault();
                     onCancelRename?.();
                   }
@@ -126,7 +146,7 @@ export function CollectionTreeItem({
             <ContextMenu>
               <ContextMenuTrigger asChild>
                 <SidebarMenuButton
-                  className={`data-[active=true]:bg-transparent ${isDragging ? 'opacity-50' : ''}`}
+                  className={`data-[active=true]:bg-transparent ${isDragging ? "opacity-50" : ""}`}
                   onClick={() => onSelect?.(request, currentPath)}
                   onDoubleClick={() => onRename?.(request)}
                 >
@@ -151,35 +171,38 @@ export function CollectionTreeItem({
 
   // Render folder item
   const folder = item as CollectionFolder;
-  const [isOpen, setIsOpen] = useState(folder.name === 'My APIs');
+  const [isOpen, setIsOpen] = useState(folder.name === "My APIs");
   const { setNodeRef: setDropRef } = useDroppable({
     id: item.id,
-    data: { item, type: 'folder' },
+    data: { item, type: "folder" },
   });
 
   return (
     <SidebarMenuItem ref={setDropRef} className="relative">
-      <Collapsible
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
-        <div ref={setDragRef} {...(isRenaming ? {} : { ...attributes, ...listeners })} className="relative">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div
+          ref={setDragRef}
+          {...(isRenaming ? {} : { ...attributes, ...listeners })}
+          className="relative"
+        >
           {isOver && (
             <div className="absolute inset-0 border-2 border-primary rounded-md pointer-events-none" />
           )}
           {isRenaming ? (
             <SidebarMenuButton className="cursor-text">
-              <ChevronRight className={`transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-90' : ''}`} />
+              <ChevronRight
+                className={`transition-transform duration-200 shrink-0 ${isOpen ? "rotate-90" : ""}`}
+              />
               <Folder className="shrink-0" />
               <Input
                 ref={inputRef}
                 value={renamingValue}
                 onChange={(e) => onRenamingValueChange?.(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     onConfirmRename?.();
-                  } else if (e.key === 'Escape') {
+                  } else if (e.key === "Escape") {
                     e.preventDefault();
                     onCancelRename?.();
                   }
@@ -194,9 +217,11 @@ export function CollectionTreeItem({
               <ContextMenuTrigger asChild>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
-                    className={`${isDragging ? 'opacity-50' : ''} ${isOver ? 'bg-accent/30' : ''}`}
+                    className={`${isDragging ? "opacity-50" : ""} ${isOver ? "bg-accent/30" : ""}`}
                   >
-                    <ChevronRight className={`transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-90' : ''}`} />
+                    <ChevronRight
+                      className={`transition-transform duration-200 shrink-0 ${isOpen ? "rotate-90" : ""}`}
+                    />
                     <Folder className="shrink-0" />
                     <span className="truncate">{folder.name}</span>
                   </SidebarMenuButton>

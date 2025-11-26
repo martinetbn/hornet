@@ -1,17 +1,14 @@
 // Hook for managing HTTP requests
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useCallback, useRef } from 'react';
-import { HttpAdapter } from '@/lib/adapters/http-adapter';
-import type { HttpRequest, SSEMessage } from '@/types';
-import {
-  requestLoadingAtom,
-  requestErrorAtom,
-} from '@/stores/request-atoms';
-import { addResponseToHistoryAtom } from '@/stores/response-atoms';
-import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
-import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
-import { resolveHttpRequestVariables } from '@/lib/utils/variable-resolver';
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useRef } from "react";
+import { HttpAdapter } from "@/lib/adapters/http-adapter";
+import type { HttpRequest, SSEMessage } from "@/types";
+import { requestLoadingAtom, requestErrorAtom } from "@/stores/request-atoms";
+import { addResponseToHistoryAtom } from "@/stores/response-atoms";
+import { tabsAtom, activeTabIdAtom } from "@/stores/collection-atoms";
+import { activeWorkspaceVariablesAtom } from "@/stores/environment-atoms";
+import { resolveHttpRequestVariables } from "@/lib/utils/variable-resolver";
 
 export function useRequest() {
   // Read-only derived atoms (these automatically read from active tab)
@@ -45,27 +42,30 @@ export function useRequest() {
 
       setTabs((currentTabs) =>
         currentTabs.map((tab) =>
-          tab.id === activeTabId ? { ...tab, ...updates } : tab
-        )
+          tab.id === activeTabId ? { ...tab, ...updates } : tab,
+        ),
       );
     },
-    [activeTabId, setTabs]
+    [activeTabId, setTabs],
   );
 
   // Disconnect any active SSE stream
-  const disconnectStream = useCallback((clearResponse = false) => {
-    const adapter = adapterRef.current;
-    if (adapter && isStreamingRef.current) {
-      adapter.disconnectStream();
-      isStreamingRef.current = false;
-    }
+  const disconnectStream = useCallback(
+    (clearResponse = false) => {
+      const adapter = adapterRef.current;
+      if (adapter && isStreamingRef.current) {
+        adapter.disconnectStream();
+        isStreamingRef.current = false;
+      }
 
-    // Only clear response if explicitly requested (when making new request)
-    if (clearResponse) {
-      sseMessagesRef.current = [];
-      updateActiveTab({ response: null });
-    }
-  }, [updateActiveTab]);
+      // Only clear response if explicitly requested (when making new request)
+      if (clearResponse) {
+        sseMessagesRef.current = [];
+        updateActiveTab({ response: null });
+      }
+    },
+    [updateActiveTab],
+  );
 
   // Execute HTTP request
   const sendRequest = useCallback(
@@ -90,7 +90,7 @@ export function useRequest() {
           sseMessagesRef.current = response.sseMessages || [];
 
           // Set up message listener for incoming SSE messages
-          adapter.on('message', (message: unknown) => {
+          adapter.on("message", (message: unknown) => {
             const sseMessage = message as SSEMessage;
             sseMessagesRef.current.push(sseMessage);
 
@@ -123,7 +123,7 @@ export function useRequest() {
         return response;
       } catch (err) {
         const error =
-          err instanceof Error ? err : new Error('Unknown error occurred');
+          err instanceof Error ? err : new Error("Unknown error occurred");
 
         isStreamingRef.current = false;
 
@@ -133,7 +133,7 @@ export function useRequest() {
         throw error;
       }
     },
-    [updateActiveTab, addToHistory, getAdapter, disconnectStream, variables]
+    [updateActiveTab, addToHistory, getAdapter, disconnectStream, variables],
   );
 
   // Cancel ongoing request

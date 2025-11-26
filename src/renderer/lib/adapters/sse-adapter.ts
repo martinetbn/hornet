@@ -1,19 +1,19 @@
 // Server-Sent Events (SSE) Protocol Adapter
 
-import type { SSEConfig, SSEMessage, SSEEvent } from '@/types';
-import type { ConnectionAdapter, ConnectionStatus } from './base';
+import type { SSEConfig, SSEMessage, SSEEvent } from "@/types";
+import type { ConnectionAdapter, ConnectionStatus } from "./base";
 
 export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
   private abortController?: AbortController;
   private reader?: ReadableStreamDefaultReader<Uint8Array>;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
-  private buffer = '';
+  private buffer = "";
 
   async connect(config: SSEConfig): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      this.status = 'connecting';
-      this.emit('status', this.status);
+      this.status = "connecting";
+      this.emit("status", this.status);
 
       try {
         // Use fetch with ReadableStream for proper header support
@@ -28,31 +28,31 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
         });
 
         const response = await fetch(config.url, {
-          method: 'GET',
+          method: "GET",
           headers,
           signal: this.abortController.signal,
-          credentials: config.withCredentials ? 'include' : 'same-origin',
+          credentials: config.withCredentials ? "include" : "same-origin",
         });
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('text/event-stream')) {
-          throw new Error('Response is not an event stream');
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("text/event-stream")) {
+          throw new Error("Response is not an event stream");
         }
 
-        this.status = 'connected';
-        this.emit('status', this.status);
+        this.status = "connected";
+        this.emit("status", this.status);
 
         const message: SSEMessage = {
           id: crypto.randomUUID(),
-          type: 'connected',
+          type: "connected",
           timestamp: Date.now(),
         };
-        this.emit('message', message);
-        this.emit('connected');
+        this.emit("message", message);
+        this.emit("connected");
         resolve();
 
         // Start reading the stream
@@ -61,17 +61,20 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
           this.readStream();
         }
       } catch (error) {
-        this.status = 'error';
-        this.emit('status', this.status);
+        this.status = "error";
+        this.emit("status", this.status);
 
         const errorMessage: SSEMessage = {
           id: crypto.randomUUID(),
-          type: 'error',
-          error: error instanceof Error ? error.message : 'Failed to establish connection',
+          type: "error",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to establish connection",
           timestamp: Date.now(),
         };
-        this.emit('message', errorMessage);
-        this.emit('error', error);
+        this.emit("message", errorMessage);
+        this.emit("error", error);
         reject(error);
       }
     });
@@ -87,9 +90,9 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
         const { done, value } = await this.reader.read();
 
         if (done) {
-          this.status = 'disconnected';
-          this.emit('status', this.status);
-          this.emit('disconnected');
+          this.status = "disconnected";
+          this.emit("status", this.status);
+          this.emit("disconnected");
           break;
         }
 
@@ -98,8 +101,8 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
         this.buffer += chunk;
 
         // Process complete messages (separated by double newline)
-        const messages = this.buffer.split('\n\n');
-        this.buffer = messages.pop() || ''; // Keep incomplete message in buffer
+        const messages = this.buffer.split("\n\n");
+        this.buffer = messages.pop() || ""; // Keep incomplete message in buffer
 
         for (const message of messages) {
           if (message.trim()) {
@@ -108,46 +111,46 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
         }
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         // Normal disconnection
         return;
       }
 
-      this.status = 'error';
-      this.emit('status', this.status);
+      this.status = "error";
+      this.emit("status", this.status);
 
       const errorMessage: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'error',
-        error: error instanceof Error ? error.message : 'Stream error',
+        type: "error",
+        error: error instanceof Error ? error.message : "Stream error",
         timestamp: Date.now(),
       };
-      this.emit('message', errorMessage);
-      this.emit('error', error);
+      this.emit("message", errorMessage);
+      this.emit("error", error);
     }
   }
 
   private parseSSEMessage(raw: string): void {
-    const lines = raw.split('\n');
-    let eventType = 'message';
-    let data = '';
-    let id = '';
+    const lines = raw.split("\n");
+    let eventType = "message";
+    let data = "";
+    let id = "";
     let retry: number | undefined;
 
     for (const line of lines) {
-      if (line.startsWith('event:')) {
+      if (line.startsWith("event:")) {
         eventType = line.slice(6).trim();
-      } else if (line.startsWith('data:')) {
-        data += line.slice(5).trim() + '\n';
-      } else if (line.startsWith('id:')) {
+      } else if (line.startsWith("data:")) {
+        data += line.slice(5).trim() + "\n";
+      } else if (line.startsWith("id:")) {
         id = line.slice(3).trim();
-      } else if (line.startsWith('retry:')) {
+      } else if (line.startsWith("retry:")) {
         retry = parseInt(line.slice(6).trim(), 10);
       }
     }
 
     // Remove trailing newline from data
-    data = data.replace(/\n$/, '');
+    data = data.replace(/\n$/, "");
 
     if (data) {
       const sseEvent: SSEEvent = {
@@ -160,12 +163,12 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
 
       const message: SSEMessage = {
         id: crypto.randomUUID(),
-        type: 'event',
+        type: "event",
         event: sseEvent,
         timestamp: Date.now(),
       };
 
-      this.emit('message', message);
+      this.emit("message", message);
     }
   }
 
@@ -181,14 +184,16 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
   async send(_message: never): Promise<void> {
     // SSE is unidirectional (server -> client only)
     // Client cannot send messages over SSE
-    throw new Error('SSE is unidirectional. Use HTTP requests to send data to the server.');
+    throw new Error(
+      "SSE is unidirectional. Use HTTP requests to send data to the server.",
+    );
   }
 
   async disconnect(): Promise<void> {
     if (!this.abortController && !this.reader) return;
 
-    this.status = 'disconnecting';
-    this.emit('status', this.status);
+    this.status = "disconnecting";
+    this.emit("status", this.status);
 
     // Cancel the fetch request
     if (this.abortController) {
@@ -206,16 +211,16 @@ export class SSEAdapter implements ConnectionAdapter<SSEConfig, never> {
       this.reader = undefined;
     }
 
-    this.status = 'disconnected';
-    this.emit('status', this.status);
+    this.status = "disconnected";
+    this.emit("status", this.status);
 
     const message: SSEMessage = {
       id: crypto.randomUUID(),
-      type: 'disconnected',
+      type: "disconnected",
       timestamp: Date.now(),
     };
-    this.emit('message', message);
-    this.emit('disconnected');
+    this.emit("message", message);
+    this.emit("disconnected");
   }
 
   on(event: string, callback: (data: unknown) => void): void {

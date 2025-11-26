@@ -1,19 +1,25 @@
 // Hook for managing connection-based protocols (WebSocket, Socket.IO, SSE)
 
-import { useAtom, useSetAtom, useAtomValue } from 'jotai';
-import { useCallback, useRef, useEffect } from 'react';
-import type { WebSocketConfig, SocketIOConfig, SSEConfig, WebSocketMessage, SocketIOMessage } from '@/types';
-import type { ConnectionAdapter, Connection } from '@/types/protocol';
-import { createAdapter } from '@/lib/adapters';
-import { connectionsAtom, addMessageAtom } from '@/stores/connection-atoms';
-import { activeWorkspaceVariablesAtom } from '@/stores/environment-atoms';
-import { 
-  resolveWebSocketVariables, 
-  resolveSocketIOVariables, 
+import { useAtom, useSetAtom, useAtomValue } from "jotai";
+import { useCallback, useRef, useEffect } from "react";
+import type {
+  WebSocketConfig,
+  SocketIOConfig,
+  SSEConfig,
+  WebSocketMessage,
+  SocketIOMessage,
+} from "@/types";
+import type { ConnectionAdapter, Connection } from "@/types/protocol";
+import { createAdapter } from "@/lib/adapters";
+import { connectionsAtom, addMessageAtom } from "@/stores/connection-atoms";
+import { activeWorkspaceVariablesAtom } from "@/stores/environment-atoms";
+import {
+  resolveWebSocketVariables,
+  resolveSocketIOVariables,
   resolveSSEVariables,
   resolveVariables,
-  resolveDataRecursively
-} from '@/lib/utils/variable-resolver';
+  resolveDataRecursively,
+} from "@/lib/utils/variable-resolver";
 
 type ConnectionConfig = WebSocketConfig | SocketIOConfig | SSEConfig;
 
@@ -28,10 +34,13 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
   // Get or create adapter instance
   const getAdapter = useCallback(() => {
     if (!adapterRef.current) {
-      adapterRef.current = createAdapter(config.protocol) as ConnectionAdapter<any, any>;
+      adapterRef.current = createAdapter(config.protocol) as ConnectionAdapter<
+        any,
+        any
+      >;
 
       // Set up event listeners
-      adapterRef.current.on('status', (status) => {
+      adapterRef.current.on("status", (status) => {
         setConnections((prev) => {
           const updated = new Map(prev);
           const conn = updated.get(connectionId);
@@ -42,31 +51,32 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         });
       });
 
-      adapterRef.current.on('message', (message) => {
+      adapterRef.current.on("message", (message) => {
         addMessage({ connectionId, message: message as any });
       });
 
-      adapterRef.current.on('error', (error) => {
+      adapterRef.current.on("error", (error) => {
         setConnections((prev) => {
           const updated = new Map(prev);
           const conn = updated.get(connectionId);
           if (conn) {
             updated.set(connectionId, {
               ...conn,
-              status: 'error',
-              error: error instanceof Error ? error.message : 'Connection error',
+              status: "error",
+              error:
+                error instanceof Error ? error.message : "Connection error",
             });
           }
           return updated;
         });
       });
 
-      adapterRef.current.on('disconnected', () => {
+      adapterRef.current.on("disconnected", () => {
         setConnections((prev) => {
           const updated = new Map(prev);
           const conn = updated.get(connectionId);
           if (conn) {
-            updated.set(connectionId, { ...conn, status: 'disconnected' });
+            updated.set(connectionId, { ...conn, status: "disconnected" });
           }
           return updated;
         });
@@ -83,7 +93,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         id: connectionId,
         protocol: config.protocol as any,
         url: config.url,
-        status: 'connecting',
+        status: "connecting",
       };
 
       setConnections((prev) => {
@@ -94,11 +104,17 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
 
       // Resolve variables before connecting
       let resolvedConfig;
-      if (config.protocol === 'websocket') {
-        resolvedConfig = resolveWebSocketVariables(config as WebSocketConfig, variables);
-      } else if (config.protocol === 'socketio') {
-        resolvedConfig = resolveSocketIOVariables(config as SocketIOConfig, variables);
-      } else if (config.protocol === 'sse') {
+      if (config.protocol === "websocket") {
+        resolvedConfig = resolveWebSocketVariables(
+          config as WebSocketConfig,
+          variables,
+        );
+      } else if (config.protocol === "socketio") {
+        resolvedConfig = resolveSocketIOVariables(
+          config as SocketIOConfig,
+          variables,
+        );
+      } else if (config.protocol === "sse") {
         resolvedConfig = resolveSSEVariables(config as SSEConfig, variables);
       } else {
         resolvedConfig = config;
@@ -114,7 +130,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         if (conn) {
           updated.set(connectionId, {
             ...conn,
-            status: 'connected',
+            status: "connected",
             connectedAt: Date.now(),
             error: undefined,
           });
@@ -122,7 +138,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         return updated;
       });
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Connection failed');
+      const error = err instanceof Error ? err : new Error("Connection failed");
 
       setConnections((prev) => {
         const updated = new Map(prev);
@@ -130,7 +146,7 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
         if (conn) {
           updated.set(connectionId, {
             ...conn,
-            status: 'error',
+            status: "error",
             error: error.message,
           });
         }
@@ -157,44 +173,51 @@ export function useConnection(connectionId: string, config: ConnectionConfig) {
   }, [connectionId, setConnections]);
 
   // Send message with variable resolution
-  const sendMessage = useCallback(async (message: WebSocketMessage | SocketIOMessage) => {
-    const adapter = adapterRef.current;
-    if (!adapter) {
-      throw new Error('Not connected');
-    }
+  const sendMessage = useCallback(
+    async (message: WebSocketMessage | SocketIOMessage) => {
+      const adapter = adapterRef.current;
+      if (!adapter) {
+        throw new Error("Not connected");
+      }
 
-    // Resolve variables in the message before sending
-    let resolvedMessage: WebSocketMessage | SocketIOMessage;
-    
-    if ('event' in message) {
-      // Socket.IO message
-      const socketIOMessage = message as SocketIOMessage;
-      resolvedMessage = {
-        ...socketIOMessage,
-        event: resolveVariables(socketIOMessage.event, variables),
-        data: resolveDataRecursively(socketIOMessage.data, variables) as unknown[],
-      };
-    } else {
-      // WebSocket message
-      const wsMessage = message as WebSocketMessage;
-      // Only resolve variables if data is a string (not binary)
-      const resolvedData = typeof wsMessage.data === 'string'
-        ? resolveVariables(wsMessage.data, variables)
-        : wsMessage.data;
-      resolvedMessage = {
-        ...wsMessage,
-        data: resolvedData,
-      };
-    }
+      // Resolve variables in the message before sending
+      let resolvedMessage: WebSocketMessage | SocketIOMessage;
 
-    await adapter.send(resolvedMessage);
-  }, [variables]);
+      if ("event" in message) {
+        // Socket.IO message
+        const socketIOMessage = message as SocketIOMessage;
+        resolvedMessage = {
+          ...socketIOMessage,
+          event: resolveVariables(socketIOMessage.event, variables),
+          data: resolveDataRecursively(
+            socketIOMessage.data,
+            variables,
+          ) as unknown[],
+        };
+      } else {
+        // WebSocket message
+        const wsMessage = message as WebSocketMessage;
+        // Only resolve variables if data is a string (not binary)
+        const resolvedData =
+          typeof wsMessage.data === "string"
+            ? resolveVariables(wsMessage.data, variables)
+            : wsMessage.data;
+        resolvedMessage = {
+          ...wsMessage,
+          data: resolvedData,
+        };
+      }
+
+      await adapter.send(resolvedMessage);
+    },
+    [variables],
+  );
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       const adapter = adapterRef.current;
-      if (adapter && connection?.status === 'connected') {
+      if (adapter && connection?.status === "connected") {
         adapter.disconnect();
       }
     };

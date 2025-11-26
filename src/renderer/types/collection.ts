@@ -1,7 +1,7 @@
 // Collection type definitions
 
-import type { Request } from './request';
-import type { HttpResponse } from './response';
+import type { Request } from "./request";
+import type { HttpResponse } from "./response";
 
 export interface Collection {
   id: string;
@@ -17,7 +17,7 @@ export interface Collection {
 export interface CollectionFolder {
   id: string;
   name: string;
-  type: 'folder';
+  type: "folder";
   workspaceId?: string;
   children: CollectionItem[];
 }

@@ -4,6 +4,3 @@ export interface Workspace {
   createdAt: number;
   updatedAt: number;
 }
-
-
-

@@ -1,6 +1,14 @@
 // Variable resolution utilities
 
-import type { Variable, HttpRequest, WebSocketConfig, SocketIOConfig, SSEConfig, GrpcRequest, KeyValuePair } from '@/types';
+import type {
+  Variable,
+  HttpRequest,
+  WebSocketConfig,
+  SocketIOConfig,
+  SSEConfig,
+  GrpcRequest,
+  KeyValuePair,
+} from "@/types";
 
 /**
  * Resolves [[variableName]] syntax in a string using provided variables
@@ -10,9 +18,11 @@ export function resolveVariables(text: string, variables: Variable[]): string {
 
   // Handle active workspace filtering if not already done by the caller
   // Note: Usually the caller should pass already filtered variables
-  
+
   return text.replace(/\[\[(\w+)\]\]/g, (match, key) => {
-    const variable = variables.find((v) => v.key === key && v.enabled !== false);
+    const variable = variables.find(
+      (v) => v.key === key && v.enabled !== false,
+    );
     return variable ? variable.value : match;
   });
 }
@@ -22,7 +32,7 @@ export function resolveVariables(text: string, variables: Variable[]): string {
  */
 export function resolveKeyValuePairs(
   pairs: KeyValuePair[] | undefined,
-  variables: Variable[]
+  variables: Variable[],
 ): KeyValuePair[] {
   if (!pairs || pairs.length === 0) return pairs || [];
 
@@ -38,7 +48,7 @@ export function resolveKeyValuePairs(
  */
 export function resolveHttpRequestVariables(
   request: HttpRequest,
-  variables: Variable[]
+  variables: Variable[],
 ): HttpRequest {
   if (!variables || variables.length === 0) return request;
 
@@ -51,16 +61,22 @@ export function resolveHttpRequestVariables(
       ? {
           ...request.auth,
           // Basic auth
-          username: request.auth.username ? resolveVariables(request.auth.username, variables) : undefined,
-          password: request.auth.password ? resolveVariables(request.auth.password, variables) : undefined,
+          username: request.auth.username
+            ? resolveVariables(request.auth.username, variables)
+            : undefined,
+          password: request.auth.password
+            ? resolveVariables(request.auth.password, variables)
+            : undefined,
           // Bearer token
-          token: request.auth.token ? resolveVariables(request.auth.token, variables) : undefined,
+          token: request.auth.token
+            ? resolveVariables(request.auth.token, variables)
+            : undefined,
         }
       : undefined,
     body: request.body
       ? {
           ...request.body,
-          content: resolveVariables(request.body.content || '', variables),
+          content: resolveVariables(request.body.content || "", variables),
         }
       : undefined,
   };
@@ -71,7 +87,7 @@ export function resolveHttpRequestVariables(
  */
 export function resolveWebSocketVariables(
   request: WebSocketConfig,
-  variables: Variable[]
+  variables: Variable[],
 ): WebSocketConfig {
   if (!variables || variables.length === 0) return request;
 
@@ -80,7 +96,9 @@ export function resolveWebSocketVariables(
     url: resolveVariables(request.url, variables),
     headers: resolveKeyValuePairs(request.headers, variables),
     params: resolveKeyValuePairs(request.params, variables),
-    protocols: request.protocols ? request.protocols.map(p => resolveVariables(p, variables)) : undefined,
+    protocols: request.protocols
+      ? request.protocols.map((p) => resolveVariables(p, variables))
+      : undefined,
     draftMessage: request.draftMessage
       ? {
           ...request.draftMessage,
@@ -95,7 +113,7 @@ export function resolveWebSocketVariables(
  */
 export function resolveSocketIOVariables(
   request: SocketIOConfig,
-  variables: Variable[]
+  variables: Variable[],
 ): SocketIOConfig {
   if (!variables || variables.length === 0) return request;
 
@@ -121,7 +139,7 @@ export function resolveSocketIOVariables(
  */
 export function resolveSSEVariables(
   request: SSEConfig,
-  variables: Variable[]
+  variables: Variable[],
 ): SSEConfig {
   if (!variables || variables.length === 0) return request;
 
@@ -137,22 +155,22 @@ export function resolveSSEVariables(
  */
 export function resolveGrpcVariables(
   request: GrpcRequest,
-  variables: Variable[]
+  variables: Variable[],
 ): GrpcRequest {
   if (!variables || variables.length === 0) return request;
 
   // Note: protoFile path might contain variables?
   // Method name usually shouldn't, but data might
-  
+
   // Recursively resolve variables in data object
   const resolveData = (data: any): any => {
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       return resolveVariables(data, variables);
     }
     if (Array.isArray(data)) {
       return data.map(resolveData);
     }
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === "object" && data !== null) {
       const resolved: any = {};
       for (const [key, value] of Object.entries(data)) {
         resolved[key] = resolveData(value);
@@ -167,10 +185,13 @@ export function resolveGrpcVariables(
     url: resolveVariables(request.url, variables),
     protoFile: resolveVariables(request.protoFile, variables),
     metadata: request.metadata
-      ? Object.entries(request.metadata).reduce((acc, [key, value]) => {
-          acc[key] = resolveVariables(value, variables);
-          return acc;
-        }, {} as Record<string, string>)
+      ? Object.entries(request.metadata).reduce(
+          (acc, [key, value]) => {
+            acc[key] = resolveVariables(value, variables);
+            return acc;
+          },
+          {} as Record<string, string>,
+        )
       : undefined,
     data: resolveData(request.data),
   };
@@ -180,16 +201,19 @@ export function resolveGrpcVariables(
  * Recursively resolves [[variableName]] syntax in any data structure
  * Handles strings, arrays, and objects recursively
  */
-export function resolveDataRecursively(data: unknown, variables: Variable[]): unknown {
+export function resolveDataRecursively(
+  data: unknown,
+  variables: Variable[],
+): unknown {
   if (!variables || variables.length === 0) return data;
 
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     return resolveVariables(data, variables);
   }
   if (Array.isArray(data)) {
-    return data.map(item => resolveDataRecursively(item, variables));
+    return data.map((item) => resolveDataRecursively(item, variables));
   }
-  if (typeof data === 'object' && data !== null) {
+  if (typeof data === "object" && data !== null) {
     const resolved: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
       resolved[key] = resolveDataRecursively(value, variables);

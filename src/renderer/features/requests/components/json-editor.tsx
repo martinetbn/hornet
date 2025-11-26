@@ -1,9 +1,9 @@
 // Reusable JSON editor component using CodeMirror
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
-import { useCodeMirrorTheme } from '@/lib/hooks/use-codemirror-theme';
+import { useCallback, useEffect, useRef, useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { useCodeMirrorTheme } from "@/lib/hooks/use-codemirror-theme";
 
 interface JsonEditorProps {
   value: string;
@@ -16,8 +16,8 @@ interface JsonEditorProps {
 export function JsonEditor({
   value,
   onChange,
-  placeholder = '{}',
-  height = '400px',
+  placeholder = "{}",
+  height = "400px",
   readOnly = false,
 }: JsonEditorProps) {
   const [localValue, setLocalValue] = useState(value);
@@ -25,15 +25,11 @@ export function JsonEditor({
   const onChangeRef = useRef(onChange);
 
   // Use shared CodeMirror theme hook
-  const {
-    customTheme,
-    customHighlighting,
-    basicSetup,
-    wrapperClass,
-  } = useCodeMirrorTheme({
-    styleId: 'codemirror-json-editor-theme',
-    wrapperClass: 'codemirror-wrapper',
-  });
+  const { customTheme, customHighlighting, basicSetup, wrapperClass } =
+    useCodeMirrorTheme({
+      styleId: "codemirror-json-editor-theme",
+      wrapperClass: "codemirror-wrapper",
+    });
 
   // Keep onChange ref up to date
   useEffect(() => {

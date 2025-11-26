@@ -1,8 +1,8 @@
 // Tab bar component for managing open requests
 
-import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
-import type { Tab } from '@/stores/collection-atoms';
+import { Button } from "@/components/ui/button";
+import { Plus, X } from "lucide-react";
+import type { Tab } from "@/stores/collection-atoms";
 
 interface TabBarProps {
   tabs: Tab[];
@@ -12,7 +12,13 @@ interface TabBarProps {
   onNewTab: () => void;
 }
 
-export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }: TabBarProps) {
+export function TabBar({
+  tabs,
+  activeTabId,
+  onTabSelect,
+  onTabClose,
+  onNewTab,
+}: TabBarProps) {
   if (tabs.length === 0) {
     return (
       <div className="flex items-center gap-1 flex-1 min-w-0">
@@ -30,7 +36,7 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
         <div
           key={tab.id}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors min-w-0 ${
-            tab.id === activeTabId ? 'bg-muted' : 'hover:bg-muted/50'
+            tab.id === activeTabId ? "bg-muted" : "hover:bg-muted/50"
           }`}
           onClick={() => onTabSelect(tab.id)}
           onMouseDown={(e) => {
@@ -43,7 +49,10 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
         >
           <div className="flex items-center gap-1.5 min-w-0">
             {tab.isDirty && (
-              <div className="size-1.5 rounded-full bg-primary shrink-0" title="Unsaved changes" />
+              <div
+                className="size-1.5 rounded-full bg-primary shrink-0"
+                title="Unsaved changes"
+              />
             )}
             <span className="truncate">{tab.name}</span>
           </div>
@@ -60,7 +69,12 @@ export function TabBar({ tabs, activeTabId, onTabSelect, onTabClose, onNewTab }:
           </Button>
         </div>
       ))}
-      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onNewTab}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0"
+        onClick={onNewTab}
+      >
         <Plus className="h-4 w-4" />
       </Button>
     </div>

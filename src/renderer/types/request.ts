@@ -1,6 +1,13 @@
 // Request type definitions
 
-import type { HttpMethod, ProtocolType, KeyValuePair, AuthConfig, BodyType, WebSocketMessageFormat } from './common';
+import type {
+  HttpMethod,
+  ProtocolType,
+  KeyValuePair,
+  AuthConfig,
+  BodyType,
+  WebSocketMessageFormat,
+} from "./common";
 
 export interface BaseRequest {
   id: string;
@@ -13,7 +20,7 @@ export interface BaseRequest {
 }
 
 export interface HttpRequest extends BaseRequest {
-  protocol: 'http';
+  protocol: "http";
   method: HttpMethod;
   url: string;
   headers?: KeyValuePair[];
@@ -27,7 +34,7 @@ export interface HttpRequest extends BaseRequest {
 }
 
 export interface WebSocketConfig extends BaseRequest {
-  protocol: 'websocket';
+  protocol: "websocket";
   url: string;
   protocols?: string[];
   headers?: KeyValuePair[];
@@ -40,20 +47,20 @@ export interface WebSocketConfig extends BaseRequest {
 }
 
 export interface SSEConfig extends BaseRequest {
-  protocol: 'sse';
+  protocol: "sse";
   url: string;
   headers?: KeyValuePair[];
 }
 
 export interface SocketIOConfig extends BaseRequest {
-  protocol: 'socketio';
+  protocol: "socketio";
   url: string;
   path?: string; // Handshake path (default: /socket.io)
   auth?: Record<string, unknown>;
   query?: KeyValuePair[]; // Query parameters
   headers?: KeyValuePair[]; // Custom headers
   params?: KeyValuePair[]; // Additional connection parameters
-  transports?: ('websocket' | 'polling')[];
+  transports?: ("websocket" | "polling")[];
   // Draft message to be sent
   draftMessage?: {
     event: string; // Event name
@@ -64,7 +71,7 @@ export interface SocketIOConfig extends BaseRequest {
 }
 
 export interface GrpcRequest extends BaseRequest {
-  protocol: 'grpc';
+  protocol: "grpc";
   url: string;
   protoFile: string;
   protoContent?: string; // Store the actual proto file content for parsing
@@ -73,7 +80,12 @@ export interface GrpcRequest extends BaseRequest {
   metadata?: Record<string, string>;
   // Internal fields - auto-detected from proto file
   service?: string;
-  streamType?: 'unary' | 'server-stream' | 'client-stream' | 'bidirectional';
+  streamType?: "unary" | "server-stream" | "client-stream" | "bidirectional";
 }
 
-export type Request = HttpRequest | WebSocketConfig | SSEConfig | SocketIOConfig | GrpcRequest;
+export type Request =
+  | HttpRequest
+  | WebSocketConfig
+  | SSEConfig
+  | SocketIOConfig
+  | GrpcRequest;

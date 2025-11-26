@@ -1,11 +1,11 @@
 // Tab management hook
 
-import { useAtom, useAtomValue } from 'jotai';
-import { tabsAtom, activeTabIdAtom } from '@/stores/collection-atoms';
-import { activeWorkspaceIdAtom } from '@/stores/workspace-atoms';
-import type { Tab } from '@/stores/collection-atoms';
-import type { Request } from '@/types';
-import { useCallback, useMemo, useEffect } from 'react';
+import { useAtom, useAtomValue } from "jotai";
+import { tabsAtom, activeTabIdAtom } from "@/stores/collection-atoms";
+import { activeWorkspaceIdAtom } from "@/stores/workspace-atoms";
+import type { Tab } from "@/stores/collection-atoms";
+import type { Request } from "@/types";
+import { useCallback, useMemo, useEffect } from "react";
 
 export function useTabs() {
   const [allTabs, setAllTabs] = useAtom(tabsAtom);
@@ -20,7 +20,7 @@ export function useTabs() {
         return tab.workspaceId === activeWorkspaceId;
       }
       // Legacy tabs (no workspaceId) belong to default workspace
-      return activeWorkspaceId === 'default';
+      return activeWorkspaceId === "default";
     });
   }, [allTabs, activeWorkspaceId]);
 
@@ -28,11 +28,11 @@ export function useTabs() {
     return tabs.find((tab) => tab.id === activeTabId) ?? null;
   }, [tabs, activeTabId]);
 
-  // Effect: When workspace changes, check if active tab is visible. 
+  // Effect: When workspace changes, check if active tab is visible.
   // If not, try to find the last active tab for this workspace or deselect.
   useEffect(() => {
     if (activeTabId && !activeTab) {
-      // Current active tab is not in this workspace. 
+      // Current active tab is not in this workspace.
       // Do we have any tabs in this workspace?
       if (tabs.length > 0) {
         // Ideally we would restore the last active tab for this workspace.
@@ -44,9 +44,9 @@ export function useTabs() {
         // Let's try to be smart: if no active tab is valid, set it to null.
         // Wait, if I set it to null, the user sees no content.
         // If I leave it as is, `activeTab` is null, so no content is shown, but the ID is "wrong".
-        setActiveTabId(null); 
+        setActiveTabId(null);
       } else {
-         setActiveTabId(null);
+        setActiveTabId(null);
       }
     }
   }, [activeWorkspaceId, activeTabId, activeTab, tabs, setActiveTabId]);
@@ -57,9 +57,9 @@ export function useTabs() {
       const existingTab = allTabs.find((tab) => tab.id === request.id);
 
       if (existingTab) {
-        // Switch to existing tab (ensure we switch workspace context if needed? 
+        // Switch to existing tab (ensure we switch workspace context if needed?
         // Actually this function is usually called from within the workspace, so it should be fine.
-        // If we are opening a tab that exists but in another workspace... that shouldn't happen 
+        // If we are opening a tab that exists but in another workspace... that shouldn't happen
         // if collections are filtered correctly.)
         setActiveTabId(existingTab.id);
       } else {
@@ -75,7 +75,7 @@ export function useTabs() {
         setActiveTabId(newTab.id);
       }
     },
-    [allTabs, setAllTabs, setActiveTabId, activeWorkspaceId]
+    [allTabs, setAllTabs, setActiveTabId, activeWorkspaceId],
   );
 
   // Close a tab
@@ -83,7 +83,7 @@ export function useTabs() {
     (tabId: string): void => {
       // Use tabs (filtered) to find index for navigation
       const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
-      
+
       // Update global tabs list
       const newAllTabs = allTabs.filter((tab) => tab.id !== tabId);
       setAllTabs(newAllTabs);
@@ -91,8 +91,8 @@ export function useTabs() {
       // If closing the active tab, switch to another tab in the CURRENT workspace
       if (activeTabId === tabId) {
         // We need to look at the filtered tabs to decide which one to select next
-        const remainingWorkspaceTabs = tabs.filter(t => t.id !== tabId);
-        
+        const remainingWorkspaceTabs = tabs.filter((t) => t.id !== tabId);
+
         if (remainingWorkspaceTabs.length > 0) {
           // Switch to the previous tab or the first tab
           const newActiveIndex = tabIndex > 0 ? tabIndex - 1 : 0;
@@ -102,15 +102,17 @@ export function useTabs() {
         }
       }
     },
-    [allTabs, tabs, activeTabId, setAllTabs, setActiveTabId]
+    [allTabs, tabs, activeTabId, setAllTabs, setActiveTabId],
   );
 
   // Update tab
   const updateTab = useCallback(
     (tabId: string, updates: Partial<Tab>): void => {
-      setAllTabs(allTabs.map((tab) => (tab.id === tabId ? { ...tab, ...updates } : tab)));
+      setAllTabs(
+        allTabs.map((tab) => (tab.id === tabId ? { ...tab, ...updates } : tab)),
+      );
     },
-    [allTabs, setAllTabs]
+    [allTabs, setAllTabs],
   );
 
   // Create new request tab
@@ -126,7 +128,7 @@ export function useTabs() {
       setAllTabs([...allTabs, newTab]);
       setActiveTabId(newTab.id);
     },
-    [allTabs, setAllTabs, setActiveTabId, activeWorkspaceId]
+    [allTabs, setAllTabs, setActiveTabId, activeWorkspaceId],
   );
 
   return {

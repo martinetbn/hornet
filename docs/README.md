@@ -5,9 +5,11 @@ Welcome to the Hornet documentation! This directory contains comprehensive guide
 ## Documentation Index
 
 ### 📐 [Architecture](./ARCHITECTURE.md)
+
 Learn about Hornet's layered architecture, design patterns, and technology choices.
 
 **Topics covered:**
+
 - Architecture layers and responsibilities
 - Data flow and state management
 - Protocol adapter pattern
@@ -15,6 +17,7 @@ Learn about Hornet's layered architecture, design patterns, and technology choic
 - Future enhancements roadmap
 
 **Read this if you:**
+
 - Are new to the project
 - Want to understand the big picture
 - Need to make architectural decisions
@@ -22,9 +25,11 @@ Learn about Hornet's layered architecture, design patterns, and technology choic
 ---
 
 ### 📁 [Directory Structure](./DIRECTORY_STRUCTURE.md)
+
 Understand how the project is organized and where to find/add code.
 
 **Topics covered:**
+
 - Complete directory tree with explanations
 - File naming conventions
 - Import conventions and path aliases
@@ -32,6 +37,7 @@ Understand how the project is organized and where to find/add code.
 - How to add new features
 
 **Read this if you:**
+
 - Can't find where code belongs
 - Are adding a new feature
 - Want to understand the codebase organization
@@ -39,9 +45,11 @@ Understand how the project is organized and where to find/add code.
 ---
 
 ### 🔄 [State Management](./STATE_MANAGEMENT.md)
+
 Master Jotai for managing application state.
 
 **Topics covered:**
+
 - Jotai fundamentals (atoms, hooks)
 - Common state patterns
 - Async state handling
@@ -50,6 +58,7 @@ Master Jotai for managing application state.
 - Best practices
 
 **Read this if you:**
+
 - Need to add or modify state
 - Want to understand data flow
 - Are debugging state issues
@@ -58,9 +67,11 @@ Master Jotai for managing application state.
 ---
 
 ### 🔌 [Protocol Adapters](./PROTOCOL_ADAPTERS.md)
+
 Learn how to work with HTTP, WebSocket, Socket.IO, and gRPC adapters.
 
 **Topics covered:**
+
 - Adapter pattern and interfaces
 - HTTP adapter implementation
 - WebSocket adapter implementation
@@ -70,6 +81,7 @@ Learn how to work with HTTP, WebSocket, Socket.IO, and gRPC adapters.
 - Adding new protocols
 
 **Read this if you:**
+
 - Are working with API protocols
 - Need to add a new protocol
 - Want to modify existing adapters
@@ -78,9 +90,11 @@ Learn how to work with HTTP, WebSocket, Socket.IO, and gRPC adapters.
 ---
 
 ### 🛠️ [Development Guide](./DEVELOPMENT_GUIDE.md)
+
 Practical guide for day-to-day development work.
 
 **Topics covered:**
+
 - Development workflow and setup
 - Code style and conventions
 - Git workflow and commit messages
@@ -90,6 +104,7 @@ Practical guide for day-to-day development work.
 - Best practices
 
 **Read this if you:**
+
 - Are starting development
 - Need to set up your environment
 - Want to follow project conventions
@@ -98,9 +113,11 @@ Practical guide for day-to-day development work.
 ---
 
 ### 🎨 [shadcn/ui Integration](./SHADCN_UI.md)
+
 Complete guide to using shadcn/ui components for building the interface.
 
 **Topics covered:**
+
 - Why shadcn/ui for Hornet
 - Configuration and setup
 - Available components (Button, Input, Card, etc.)
@@ -110,6 +127,7 @@ Complete guide to using shadcn/ui components for building the interface.
 - Integration with Jotai
 
 **Read this if you:**
+
 - Are building UI components
 - Need to add new shadcn components
 - Want to customize the theme

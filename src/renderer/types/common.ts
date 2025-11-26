@@ -1,8 +1,15 @@
 // Common types used across the application
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "HEAD"
+  | "OPTIONS";
 
-export type ProtocolType = 'http' | 'websocket' | 'sse' | 'socketio' | 'grpc';
+export type ProtocolType = "http" | "websocket" | "sse" | "socketio" | "grpc";
 
 export interface KeyValuePair {
   key: string;
@@ -11,7 +18,7 @@ export interface KeyValuePair {
   description?: string;
 }
 
-export type AuthType = 'none' | 'bearer' | 'basic' | 'api-key' | 'oauth2';
+export type AuthType = "none" | "bearer" | "basic" | "api-key" | "oauth2";
 
 export interface AuthConfig {
   type: AuthType;
@@ -25,7 +32,7 @@ export interface AuthConfig {
   apiKey?: {
     key: string;
     value: string;
-    in: 'header' | 'query';
+    in: "header" | "query";
   };
   oauth2?: {
     accessToken: string;
@@ -33,6 +40,18 @@ export interface AuthConfig {
   };
 }
 
-export type BodyType = 'none' | 'json' | 'xml' | 'html' | 'text' | 'form-data' | 'urlencoded';
+export type BodyType =
+  | "none"
+  | "json"
+  | "xml"
+  | "html"
+  | "text"
+  | "form-data"
+  | "urlencoded";
 
-export type WebSocketMessageFormat = 'text' | 'json' | 'xml' | 'html' | 'binary';
+export type WebSocketMessageFormat =
+  | "text"
+  | "json"
+  | "xml"
+  | "html"
+  | "binary";

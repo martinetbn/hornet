@@ -6,13 +6,16 @@
  * folders and requests, following the project's state management guidelines.
  */
 
-import type { CollectionItem, CollectionFolder } from '@/stores/collection-atoms';
+import type {
+  CollectionItem,
+  CollectionFolder,
+} from "@/stores/collection-atoms";
 
 /**
  * Type guard to check if an item is a folder
  */
 export function isFolder(item: CollectionItem): item is CollectionFolder {
-  return 'type' in item && item.type === 'folder';
+  return "type" in item && item.type === "folder";
 }
 
 /**
@@ -24,7 +27,7 @@ export function isFolder(item: CollectionItem): item is CollectionFolder {
  */
 export function findItemInTree(
   items: CollectionItem[],
-  itemId: string
+  itemId: string,
 ): CollectionItem | null {
   for (const item of items) {
     if (item.id === itemId) {
@@ -47,7 +50,7 @@ export function findItemInTree(
  */
 export function removeItemFromTree(
   items: CollectionItem[],
-  itemId: string
+  itemId: string,
 ): CollectionItem[] {
   return items
     .filter((item) => item.id !== itemId)
@@ -73,7 +76,7 @@ export function removeItemFromTree(
 export function renameItemInTree(
   items: CollectionItem[],
   itemId: string,
-  newName: string
+  newName: string,
 ): CollectionItem[] {
   return items.map((item) => {
     if (item.id === itemId) {
@@ -100,7 +103,7 @@ export function renameItemInTree(
 export function updateItemInTree<T extends CollectionItem>(
   items: CollectionItem[],
   itemId: string,
-  updater: (item: T) => T
+  updater: (item: T) => T,
 ): CollectionItem[] {
   return items.map((item) => {
     if (item.id === itemId) {
@@ -127,7 +130,7 @@ export function updateItemInTree<T extends CollectionItem>(
 export function addToFolderInTree(
   items: CollectionItem[],
   folderId: string,
-  newItem: CollectionItem
+  newItem: CollectionItem,
 ): CollectionItem[] {
   return items.map((item) => {
     if (isFolder(item)) {
@@ -157,7 +160,7 @@ export function addToFolderInTree(
 export function findPathInTree(
   items: CollectionItem[],
   itemId: string,
-  currentPath: string[] = []
+  currentPath: string[] = [],
 ): string[] {
   for (const item of items) {
     const newPath = [...currentPath, item.name];
@@ -178,7 +181,9 @@ export function findPathInTree(
  * @param items - Collection items to process
  * @returns Array of all folders in the tree
  */
-export function getAllFoldersFromTree(items: CollectionItem[]): CollectionFolder[] {
+export function getAllFoldersFromTree(
+  items: CollectionItem[],
+): CollectionFolder[] {
   const folders: CollectionFolder[] = [];
   for (const item of items) {
     if (isFolder(item)) {
@@ -200,7 +205,7 @@ export function getAllFoldersFromTree(items: CollectionItem[]): CollectionFolder
 export function moveItemInTree(
   items: CollectionItem[],
   itemId: string,
-  targetFolderId: string | null
+  targetFolderId: string | null,
 ): CollectionItem[] {
   // Find the item first
   const item = findItemInTree(items, itemId);
@@ -247,7 +252,7 @@ export function countItemsInTree(items: CollectionItem[]): number {
  */
 export function filterItemsInTree(
   items: CollectionItem[],
-  predicate: (item: CollectionItem) => boolean
+  predicate: (item: CollectionItem) => boolean,
 ): CollectionItem[] {
   const results: CollectionItem[] = [];
   for (const item of items) {

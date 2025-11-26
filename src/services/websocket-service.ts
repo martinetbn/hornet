@@ -1,6 +1,6 @@
 // WebSocket service for main process (supports custom headers)
-import WebSocket from 'ws';
-import type { ClientRequestArgs } from 'http';
+import WebSocket from "ws";
+import type { ClientRequestArgs } from "http";
 
 interface WebSocketConnection {
   ws: WebSocket;
@@ -33,25 +33,24 @@ export class WebSocketService {
         // Build WebSocket client options with custom headers
         const wsOptions: WebSocket.ClientOptions & ClientRequestArgs = {
           headers: options.headers || {},
-          protocol: options.protocols?.join(', '),
+          protocol: options.protocols?.join(", "),
         };
 
         // Create WebSocket connection with custom headers
         const ws = new WebSocket(options.url, wsOptions);
 
-        ws.on('open', () => {
+        ws.on("open", () => {
           this.connections.set(connectionId, { ws, id: connectionId });
           resolve();
         });
 
-        ws.on('error', (error) => {
+        ws.on("error", (error) => {
           reject(error);
         });
 
-        ws.on('close', () => {
+        ws.on("close", () => {
           this.connections.delete(connectionId);
         });
-
       } catch (error) {
         reject(error);
       }
@@ -66,12 +65,12 @@ export class WebSocketService {
       const connection = this.connections.get(options.connectionId);
 
       if (!connection) {
-        reject(new Error('WebSocket connection not found'));
+        reject(new Error("WebSocket connection not found"));
         return;
       }
 
       if (connection.ws.readyState !== WebSocket.OPEN) {
-        reject(new Error('WebSocket is not connected'));
+        reject(new Error("WebSocket is not connected"));
         return;
       }
 
@@ -113,24 +112,26 @@ export class WebSocketService {
   /**
    * Check connection status
    */
-  getStatus(connectionId: string): 'connecting' | 'open' | 'closing' | 'closed' | 'disconnected' {
+  getStatus(
+    connectionId: string,
+  ): "connecting" | "open" | "closing" | "closed" | "disconnected" {
     const connection = this.connections.get(connectionId);
 
     if (!connection) {
-      return 'disconnected';
+      return "disconnected";
     }
 
     switch (connection.ws.readyState) {
       case WebSocket.CONNECTING:
-        return 'connecting';
+        return "connecting";
       case WebSocket.OPEN:
-        return 'open';
+        return "open";
       case WebSocket.CLOSING:
-        return 'closing';
+        return "closing";
       case WebSocket.CLOSED:
-        return 'closed';
+        return "closed";
       default:
-        return 'disconnected';
+        return "disconnected";
     }
   }
 

@@ -81,12 +81,12 @@ interface User {
 }
 
 // Use type for unions and primitives
-type RequestStatus = 'pending' | 'success' | 'error';
+type RequestStatus = "pending" | "success" | "error";
 type ID = string;
 
 // Avoid 'any', use 'unknown' if type is truly unknown
 function processData(data: unknown): void {
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     // Type narrowing
   }
 }
@@ -142,11 +142,11 @@ export function RequestBuilder() {}
 function validateRequest() {}
 
 // Constants: UPPER_SNAKE_CASE
-const API_BASE_URL = 'https://api.example.com';
+const API_BASE_URL = "https://api.example.com";
 
 // Interfaces/Types: PascalCase
 interface Request {}
-type RequestStatus = 'pending' | 'success';
+type RequestStatus = "pending" | "success";
 
 // Atoms: camelCaseAtom
 export const currentRequestAtom = atom(null);
@@ -211,16 +211,16 @@ perf: optimize response rendering
 ```typescript
 // src/renderer/lib/adapters/__tests__/http-adapter.test.ts
 
-import { describe, it, expect } from 'bun:test';
-import { HttpAdapter } from '../http-adapter';
+import { describe, it, expect } from "bun:test";
+import { HttpAdapter } from "../http-adapter";
 
-describe('HttpAdapter', () => {
-  it('should make GET request', async () => {
+describe("HttpAdapter", () => {
+  it("should make GET request", async () => {
     const adapter = new HttpAdapter();
 
     const response = await adapter.execute({
-      method: 'GET',
-      url: 'https://jsonplaceholder.typicode.com/posts/1',
+      method: "GET",
+      url: "https://jsonplaceholder.typicode.com/posts/1",
       headers: {},
     });
 
@@ -251,7 +251,7 @@ describe('RequestBuilder', () => {
 Test complete user workflows:
 
 ```typescript
-it('should create and send HTTP request', async () => {
+it("should create and send HTTP request", async () => {
   // 1. Render app
   // 2. Fill in request details
   // 3. Click send
@@ -303,13 +303,13 @@ if (!app.isPackaged) {
 
 ```typescript
 // Main process
-console.log('[Main]', 'Message');
+console.log("[Main]", "Message");
 
 // Renderer process
-console.log('[Renderer]', 'Message');
+console.log("[Renderer]", "Message");
 
 // Use structured logging
-console.log('[Renderer]', { event: 'request_sent', duration: 123 });
+console.log("[Renderer]", { event: "request_sent", duration: 123 });
 ```
 
 ### Jotai DevTools
@@ -404,6 +404,7 @@ function App() {
    - Design data flow
 
 2. **Create types**
+
    ```typescript
    // src/renderer/types/my-feature.ts
    export interface MyFeature {
@@ -413,12 +414,14 @@ function App() {
    ```
 
 3. **Create atoms**
+
    ```typescript
    // src/renderer/stores/my-feature-atoms.ts
    export const myFeatureAtom = atom<MyFeature | null>(null);
    ```
 
 4. **Create components**
+
    ```typescript
    // src/renderer/features/my-feature/components/my-component.tsx
    export function MyComponent() {
@@ -427,15 +430,17 @@ function App() {
    ```
 
 5. **Add to app**
+
    ```typescript
    // src/renderer/app.tsx
-   import { MyComponent } from '@/features/my-feature/components/my-component';
+   import { MyComponent } from "@/features/my-feature/components/my-component";
    ```
 
 6. **Write tests**
+
    ```typescript
    // src/renderer/features/my-feature/__tests__/my-component.test.tsx
-   describe('MyComponent', () => {
+   describe("MyComponent", () => {
      // ...
    });
    ```
@@ -544,10 +549,10 @@ Always handle errors and provide useful feedback:
 try {
   await sendRequest(request);
 } catch (error) {
-  if (error.code === 'ECONNREFUSED') {
-    showToast('Connection refused. Is the server running?', 'error');
+  if (error.code === "ECONNREFUSED") {
+    showToast("Connection refused. Is the server running?", "error");
   } else {
-    showToast(`Request failed: ${error.message}`, 'error');
+    showToast(`Request failed: ${error.message}`, "error");
   }
 }
 ```

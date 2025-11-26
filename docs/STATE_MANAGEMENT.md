@@ -20,7 +20,7 @@ Hornet uses [Jotai](https://jotai.org/) for state management. Jotai provides ato
 An atom is a piece of state. Think of it as a `useState` that can be shared across components.
 
 ```typescript
-import { atom } from 'jotai';
+import { atom } from "jotai";
 
 // Primitive atom
 export const countAtom = atom(0);
@@ -39,7 +39,7 @@ export const uppercaseAtom = atom(
   (get) => get(textAtom).toUpperCase(),
   (get, set, newValue: string) => {
     set(textAtom, newValue.toUpperCase());
-  }
+  },
 );
 ```
 
@@ -106,8 +106,8 @@ export const hasErrorAtom = atom(false);
 
 ```typescript
 // stores/request-atoms.ts
-import { atom } from 'jotai';
-import { Request } from '@/types';
+import { atom } from "jotai";
+import { Request } from "@/types";
 
 // Current request being edited
 export const currentRequestAtom = atom<Request | null>(null);
@@ -129,6 +129,7 @@ export const isRequestValidAtom = atom((get) => {
 ```
 
 **Usage:**
+
 ```typescript
 function RequestBuilder() {
   const [request, setRequest] = useAtom(currentRequestAtom);
@@ -148,15 +149,12 @@ function RequestBuilder() {
 
 ```typescript
 // stores/collection-atoms.ts
-import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import { Collection } from '@/types';
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { Collection } from "@/types";
 
 // Collections persisted to disk
-export const collectionsAtom = atomWithStorage<Collection[]>(
-  'collections',
-  []
-);
+export const collectionsAtom = atomWithStorage<Collection[]>("collections", []);
 
 // Currently selected collection
 export const selectedCollectionIdAtom = atom<string | null>(null);
@@ -213,8 +211,8 @@ function ResponseViewer() {
 
 ```typescript
 // stores/connection-atoms.ts
-import { atom } from 'jotai';
-import { Connection, Message } from '@/types';
+import { atom } from "jotai";
+import { Connection, Message } from "@/types";
 
 // Map of active connections
 export const connectionsAtom = atom<Map<string, Connection>>(new Map());
@@ -237,12 +235,16 @@ export const currentConnectionMessagesAtom = atom((get) => {
 // Write-only: Add message to connection
 export const addMessageAtom = atom(
   null,
-  (get, set, { connectionId, message }: { connectionId: string; message: Message }) => {
+  (
+    get,
+    set,
+    { connectionId, message }: { connectionId: string; message: Message },
+  ) => {
     const messages = new Map(get(messagesAtom));
     const connectionMessages = messages.get(connectionId) ?? [];
     messages.set(connectionId, [...connectionMessages, message]);
     set(messagesAtom, messages);
-  }
+  },
 );
 ```
 
@@ -250,17 +252,17 @@ export const addMessageAtom = atom(
 
 ```typescript
 // stores/environment-atoms.ts
-import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
-export const environmentsAtom = atomWithStorage('environments', [
-  { id: 'dev', name: 'Development', variables: {} },
-  { id: 'prod', name: 'Production', variables: {} },
+export const environmentsAtom = atomWithStorage("environments", [
+  { id: "dev", name: "Development", variables: {} },
+  { id: "prod", name: "Production", variables: {} },
 ]);
 
 export const selectedEnvironmentIdAtom = atomWithStorage<string | null>(
-  'selected-environment',
-  null
+  "selected-environment",
+  null,
 );
 
 // Derived: Current environment variables
@@ -280,7 +282,7 @@ export const resolveVariablesAtom = atom(
     return text.replace(/\{\{(\w+)\}\}/g, (_, key) => {
       return environment.variables[key] ?? `{{${key}}}`;
     });
-  }
+  },
 );
 ```
 
@@ -291,11 +293,11 @@ export const resolveVariablesAtom = atom(
 For dynamic atom creation based on parameters:
 
 ```typescript
-import { atomFamily } from 'jotai/utils';
+import { atomFamily } from "jotai/utils";
 
 // Create an atom for each request ID
 export const requestAtomFamily = atomFamily((requestId: string) =>
-  atom<Request | null>(null)
+  atom<Request | null>(null),
 );
 
 // Usage:
@@ -307,11 +309,11 @@ function RequestDetail({ requestId }: { requestId: string }) {
 ### Atom with Persistence
 
 ```typescript
-import { atomWithStorage } from 'jotai/utils';
+import { atomWithStorage } from "jotai/utils";
 
 // Automatically persists to localStorage
-export const settingsAtom = atomWithStorage('settings', {
-  theme: 'dark',
+export const settingsAtom = atomWithStorage("settings", {
+  theme: "dark",
   fontSize: 14,
   autoSave: true,
 });
@@ -332,9 +334,9 @@ function createElectronStorage() {
 }
 
 export const collectionsAtom = atomWithStorage(
-  'collections',
+  "collections",
   [],
-  createElectronStorage()
+  createElectronStorage(),
 );
 ```
 
@@ -343,22 +345,22 @@ export const collectionsAtom = atomWithStorage(
 For complex state updates:
 
 ```typescript
-import { atomWithReducer } from 'jotai/utils';
+import { atomWithReducer } from "jotai/utils";
 
 type Action =
-  | { type: 'add'; request: Request }
-  | { type: 'remove'; id: string }
-  | { type: 'update'; id: string; updates: Partial<Request> };
+  | { type: "add"; request: Request }
+  | { type: "remove"; id: string }
+  | { type: "update"; id: string; updates: Partial<Request> };
 
 function requestsReducer(state: Request[], action: Action): Request[] {
   switch (action.type) {
-    case 'add':
+    case "add":
       return [...state, action.request];
-    case 'remove':
+    case "remove":
       return state.filter((r) => r.id !== action.id);
-    case 'update':
+    case "update":
       return state.map((r) =>
-        r.id === action.id ? { ...r, ...action.updates } : r
+        r.id === action.id ? { ...r, ...action.updates } : r,
       );
     default:
       return state;
@@ -369,27 +371,27 @@ export const requestsAtom = atomWithReducer([], requestsReducer);
 
 // Usage:
 const [requests, dispatch] = useAtom(requestsAtom);
-dispatch({ type: 'add', request: newRequest });
+dispatch({ type: "add", request: newRequest });
 ```
 
 ## Testing Atoms
 
 ```typescript
-import { renderHook, act } from '@testing-library/react';
-import { useAtom } from 'jotai';
-import { currentRequestAtom } from '@/stores';
+import { renderHook, act } from "@testing-library/react";
+import { useAtom } from "jotai";
+import { currentRequestAtom } from "@/stores";
 
-describe('currentRequestAtom', () => {
-  it('should update request', () => {
+describe("currentRequestAtom", () => {
+  it("should update request", () => {
     const { result } = renderHook(() => useAtom(currentRequestAtom));
 
     act(() => {
       const [, setRequest] = result.current;
-      setRequest({ id: '1', name: 'Test', method: 'GET', url: '/api' });
+      setRequest({ id: "1", name: "Test", method: "GET", url: "/api" });
     });
 
     const [request] = result.current;
-    expect(request?.name).toBe('Test');
+    expect(request?.name).toBe("Test");
   });
 });
 ```
@@ -418,18 +420,20 @@ function App() {
 ## Best Practices
 
 ### 1. Keep Atoms Focused
+
 Each atom should represent one piece of state.
 
 ```typescript
 // Good
-const requestUrlAtom = atom('');
-const requestMethodAtom = atom<HttpMethod>('GET');
+const requestUrlAtom = atom("");
+const requestMethodAtom = atom<HttpMethod>("GET");
 
 // Less ideal (harder to optimize)
-const requestAtom = atom({ url: '', method: 'GET' });
+const requestAtom = atom({ url: "", method: "GET" });
 ```
 
 ### 2. Use Derived Atoms
+
 Compute values instead of duplicating state.
 
 ```typescript
@@ -439,12 +443,13 @@ const fullNameAtom = atom((get) => {
 });
 
 // Bad (duplicated state)
-const firstNameAtom = atom('');
-const lastNameAtom = atom('');
-const fullNameAtom = atom(''); // needs manual syncing
+const firstNameAtom = atom("");
+const lastNameAtom = atom("");
+const fullNameAtom = atom(""); // needs manual syncing
 ```
 
 ### 3. Optimize Re-renders
+
 Use `useAtomValue` for read-only and `useSetAtom` for write-only.
 
 ```typescript
@@ -457,6 +462,7 @@ const [count, setCount] = useAtom(countAtom); // Re-renders even if only setting
 ```
 
 ### 4. Organize Related Atoms
+
 Group related atoms in the same file and export together.
 
 ```typescript
@@ -470,6 +476,7 @@ export const requestAtoms = {
 ```
 
 ### 5. Document Complex Atoms
+
 Add JSDoc comments for non-obvious behavior.
 
 ```typescript
@@ -489,7 +496,7 @@ export const resolvedRequestUrlAtom = atom((get) => {
 ```typescript
 // Redux
 const store = createStore(reducer);
-store.dispatch({ type: 'INCREMENT' });
+store.dispatch({ type: "INCREMENT" });
 
 // Jotai
 const countAtom = atom(0);
@@ -501,11 +508,11 @@ setCount((c) => c + 1);
 
 ```typescript
 // Context
-const ThemeContext = createContext('dark');
+const ThemeContext = createContext("dark");
 const theme = useContext(ThemeContext);
 
 // Jotai
-const themeAtom = atom('dark');
+const themeAtom = atom("dark");
 const theme = useAtomValue(themeAtom);
 ```
 
@@ -525,20 +532,21 @@ const loadableDataAtom = loadable(asyncDataAtom);
 ### Undo/Redo
 
 ```typescript
-import { atomWithUndo } from 'jotai-history';
+import { atomWithUndo } from "jotai-history";
 
-const requestAtom = atomWithUndo({ url: '', method: 'GET' });
+const requestAtom = atomWithUndo({ url: "", method: "GET" });
 
 // Usage
-const [request, setRequest, { undo, redo, canUndo, canRedo }] = useAtom(requestAtom);
+const [request, setRequest, { undo, redo, canUndo, canRedo }] =
+  useAtom(requestAtom);
 ```
 
 ### Sync with URL
 
 ```typescript
-import { atomWithHash } from 'jotai-location';
+import { atomWithHash } from "jotai-location";
 
-const tabAtom = atomWithHash('tab', 'request', {
+const tabAtom = atomWithHash("tab", "request", {
   serialize: String,
   deserialize: String,
 });
