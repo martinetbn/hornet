@@ -7,6 +7,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "format": "prettier --write .",
     "dev": "bun run build && electron .",
     "build:main": "bun build src/main.ts --outdir dist --target node --external electron",
     "build:preload": "bun build src/preload.ts --outdir dist --target node --external electron --format=cjs",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
+    "prettier": "^3.5.3",
     "@types/bun": "latest",
     "@types/node": "^24.10.1",
     "@types/uuid": "^11.0.0",
