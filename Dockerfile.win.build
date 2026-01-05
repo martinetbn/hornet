@@ -1,0 +1,22 @@
+FROM electronuserland/builder:wine
+
+# Install bun
+RUN npm install -g bun
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package.json bun.lock* ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Build the app
+RUN bun run build
+
+# Default command builds for Windows
+CMD ["bun", "run", "package:win"]
