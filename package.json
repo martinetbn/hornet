@@ -9,7 +9,7 @@
   "scripts": {
     "format": "prettier --write .",
     "dev": "bun run build && electron .",
-    "build:main": "bun build src/main.ts --outdir dist --target node --external electron",
+    "build:main": "bun build src/main.ts --outdir dist --target node --external electron --external ws --external axios --external socket.io-client --external @grpc/grpc-js --external @grpc/proto-loader",
     "build:preload": "bun build src/preload.ts --outdir dist --target node --external electron --format=cjs",
     "build:css": "mkdir -p dist/renderer && postcss src/renderer/styles.css -o dist/renderer/styles.css",
     "build:html": "bun build src/renderer/index.html --outdir dist/renderer",

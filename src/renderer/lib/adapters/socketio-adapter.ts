@@ -1,20 +1,22 @@
-// Socket.IO Protocol Adapter
+// Socket.IO Protocol Adapter (using Electron IPC for CORS bypass)
 
-import { io, Socket } from "socket.io-client";
 import type { SocketIOConfig, SocketIOMessage } from "@/types";
 import type { ConnectionAdapter, ConnectionStatus } from "./base";
 
 export class SocketIOAdapter
   implements ConnectionAdapter<SocketIOConfig, SocketIOMessage>
 {
-  private socket?: Socket;
+  private connectionId?: string;
   private status: ConnectionStatus = "disconnected";
   private eventListeners = new Map<string, Set<Function>>();
+  private cleanupFunctions: (() => void)[] = [];
 
   async connect(config: SocketIOConfig): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.status = "connecting";
       this.emit("status", this.status);
+
+      this.connectionId = config.id;
 
       // Convert KeyValuePair[] to Record<string, string> for query params
       const queryParams = config.query?.reduce(
@@ -28,7 +30,7 @@ export class SocketIOAdapter
       );
 
       // Convert KeyValuePair[] to Record<string, string> for headers
-      const extraHeaders = config.headers?.reduce(
+      const headers = config.headers?.reduce(
         (acc, { key, value, enabled }) => {
           if (enabled && key) {
             acc[key] = value;
@@ -38,54 +40,91 @@ export class SocketIOAdapter
         {} as Record<string, string>,
       );
 
-      this.socket = io(config.url, {
-        path: config.path || "/socket.io",
-        auth: config.auth,
-        transports: config.transports || ["websocket", "polling"],
-        query: queryParams,
-        extraHeaders,
-      });
+      try {
+        // Connect via Electron IPC (main process - no CORS restrictions)
+        const result = await window.electronAPI.socketio.connect(
+          this.connectionId,
+          {
+            url: config.url,
+            path: config.path || "/socket.io",
+            auth: config.auth,
+            transports: config.transports || ["websocket", "polling"],
+            query: queryParams,
+            headers,
+          },
+        );
 
-      this.socket.on("connect", () => {
+        if (!result.success) {
+          this.status = "error";
+          this.emit("status", this.status);
+          this.emit("error", new Error(result.error || "Connection failed"));
+          reject(new Error(result.error || "Connection failed"));
+          return;
+        }
+
+        // Set up event listeners
+        const onMessage = window.electronAPI.socketio.onMessage(
+          this.connectionId,
+          (data: { event: string; data: unknown[]; timestamp: number }) => {
+            const message: SocketIOMessage = {
+              id: crypto.randomUUID(),
+              type: "received",
+              event: data.event,
+              data: data.data,
+              timestamp: data.timestamp,
+            };
+            this.emit("message", message);
+          },
+        );
+        this.cleanupFunctions.push(onMessage);
+
+        const onDisconnected = window.electronAPI.socketio.onDisconnected(
+          this.connectionId,
+          (data: { reason: string }) => {
+            this.status = "disconnected";
+            this.emit("status", this.status);
+            this.emit("disconnected", { reason: data.reason });
+          },
+        );
+        this.cleanupFunctions.push(onDisconnected);
+
+        const onError = window.electronAPI.socketio.onError(
+          this.connectionId,
+          (data: { message: string }) => {
+            this.status = "error";
+            this.emit("status", this.status);
+            this.emit("error", new Error(data.message));
+          },
+        );
+        this.cleanupFunctions.push(onError);
+
         this.status = "connected";
         this.emit("status", this.status);
-        this.emit("connected", { id: this.socket!.id });
+        this.emit("connected", { id: result.socketId });
         resolve();
-      });
-
-      this.socket.on("disconnect", (reason) => {
-        this.status = "disconnected";
-        this.emit("status", this.status);
-        this.emit("disconnected", { reason });
-      });
-
-      this.socket.on("connect_error", (error) => {
+      } catch (error) {
         this.status = "error";
         this.emit("status", this.status);
         this.emit("error", error);
         reject(error);
-      });
-
-      // Listen to all events
-      this.socket.onAny((event, ...args) => {
-        const message: SocketIOMessage = {
-          id: crypto.randomUUID(),
-          type: "received",
-          event,
-          data: args,
-          timestamp: Date.now(),
-        };
-        this.emit("message", message);
-      });
+      }
     });
   }
 
   async send(message: SocketIOMessage): Promise<void> {
-    if (!this.socket?.connected) {
+    if (!this.connectionId) {
       throw new Error("Socket.IO is not connected");
     }
 
-    this.socket.emit(message.event, ...message.data);
+    const result = await window.electronAPI.socketio.send(
+      this.connectionId,
+      message.event,
+      message.data,
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || "Failed to send message");
+    }
 
     const sentMessage: SocketIOMessage = {
       ...message,
@@ -96,13 +135,17 @@ export class SocketIOAdapter
   }
 
   async disconnect(): Promise<void> {
-    if (!this.socket) return;
+    if (!this.connectionId) return;
 
     this.status = "disconnecting";
     this.emit("status", this.status);
 
-    this.socket.disconnect();
-    this.socket = undefined;
+    // Clean up event listeners
+    this.cleanupFunctions.forEach((cleanup) => cleanup());
+    this.cleanupFunctions = [];
+
+    await window.electronAPI.socketio.disconnect(this.connectionId);
+    this.connectionId = undefined;
   }
 
   on(event: string, callback: (data: unknown) => void): void {

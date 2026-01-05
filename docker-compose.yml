@@ -1,0 +1,28 @@
+services:
+  hornet:
+    build: .
+    container_name: hornet
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - ELECTRON_DISABLE_SANDBOX=1
+      # For Wayland (optional)
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}
+      - XDG_RUNTIME_DIR=/tmp
+    volumes:
+      # X11 socket for GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Share X authority
+      - ${XAUTHORITY:-~/.Xauthority}:/root/.Xauthority:ro
+      # Persist app data
+      - hornet-data:/root/.config/hornet
+      # For development: mount source for hot reload
+      # - .:/app
+      # - /app/node_modules
+    network_mode: host
+    # Security options for Electron
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+
+volumes:
+  hornet-data:
